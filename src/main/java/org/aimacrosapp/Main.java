@@ -12,7 +12,7 @@ public class Main {
         try {
             // Example: Hard-coded user data
             AccountLogic accountLogic = new AccountLogic();
-            boolean result = accountLogic.newUser("John", "Doe", "1990-01-01", "Male", 6, 2);
+            boolean result = accountLogic.newUser("Sally", "Doe", "1990-01-01", "Female", 5, 9);
             System.out.println("User creation successful: " + result);
         } catch (IOException e) {
             e.printStackTrace();
