@@ -12,7 +12,7 @@ public class AccountLogic {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
-
+//ddd
     // Method to create a new user and insert into the database (bypassing authentication)
     public boolean newUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches) throws IOException {
         String endpoint = DB_URL + "/rest/v1/users"; // Ensure your custom table name is correct
