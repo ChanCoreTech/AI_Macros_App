@@ -1,29 +1,24 @@
 package org.aimacrosapp;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.io.*;
+import java.net.*;
+import javax.net.ssl.HttpsURLConnection;
+
 public class Main {
     public static void main(String[] args) throws IOException {
         try {
-            // Now, use the token to create a new user
+            // Example: Hard-coded user data
             AccountLogic accountLogic = new AccountLogic();
-
-            // First, log in the user to get the JWT token
-            String email = "sdoe@example.com"; // Replace with actual user input
-            String password = "doe123";  // Replace with actual user input
-            String jwtToken = AccountLogic.loginUser(email, password); // Get the token
-
-            boolean isUserCreated = accountLogic.newUser("Sarah", "Doe", "1990-01-01", "Female", 5, 9, jwtToken);
-
-            if (isUserCreated) {
-                System.out.println("User created successfully!");
-            } else {
-                System.out.println("Failed to create user.");
-            }
-
+            boolean result = accountLogic.newUser("John", "Doe", "1990-01-01", "Male", 6, 2);
+            System.out.println("User creation successful: " + result);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+}
 //        //test
 //        String jwtToken = AccountLogic.loginUser("sdoe@example.com", "doe123");
 //    AccountLogic a = new AccountLogic();
@@ -35,4 +30,3 @@ public class Main {
 //            System.out.println("Failed to create user.");
 //        }
 //    //a.newUser("Sally", "Doe", "1990-04-25", "Female", 5, 10);
-    }
