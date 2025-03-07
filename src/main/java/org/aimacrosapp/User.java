@@ -8,6 +8,12 @@ public class User {
     private String gender;
     private int height_feet;
     private int height_inches;
+
+    //temp
+    private String email;
+    private String password;
+    //temp
+
     //optional attributes
     private String body_type;
     private String experience_level;
@@ -24,6 +30,19 @@ public class User {
         this.height_feet = height_feet;
         this.height_inches = height_inches;
     }
+
+    //TEMP necessary user constructor
+    public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, String email, String password){
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.birth_date = birth_date;
+        this.gender = gender;
+        this.height_feet = height_feet;
+        this.height_inches = height_inches;
+        this.email = email;
+        this.password = password;
+    }
+
     //optional user constructor
     public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, String body_type, String experience_level,
                 String activity_level, String primary_goal){

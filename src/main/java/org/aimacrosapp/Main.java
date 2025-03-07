@@ -1,26 +1,32 @@
 package org.aimacrosapp;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.io.*;
+import java.net.*;
+import javax.net.ssl.HttpsURLConnection;
+
 public class Main {
-    public static void main(String[] args) throws ClassNotFoundException {
-        //test
-
-    AccountLogic a = new AccountLogic();
-        AccountLogic deletethis = new AccountLogic();
-    User u = a.newUser();
-    a.sendUser(u);
-
-        //System.out.println("Available JDBC Drivers:");
-
-//        // Convert Enumeration to List
-//        List<Driver> drivers = Collections.list(DriverManager.getDrivers());
-//
-//        // Now foreach loop works
-//        for (Driver driver : drivers) {
-//            System.out.println(driver.getClass().getName());
-//        }
+    public static void main(String[] args) throws IOException {
+        try {
+            // Example: Hard-coded user data
+            AccountLogic accountLogic = new AccountLogic();
+            boolean result = accountLogic.newUser("Sally", "Doe", "1990-01-01", "Female", 5, 9);
+            System.out.println("User creation successful: " + result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
+//        //test
+//        String jwtToken = AccountLogic.loginUser("sdoe@example.com", "doe123");
+//    AccountLogic a = new AccountLogic();
+//        boolean success = a.newUser("Sally", "Doe", "1990-04-25", "Female", 5, 10, jwtToken);
+//
+//        if (success) {
+//            System.out.println("User created successfully.");
+//        } else {
+//            System.out.println("Failed to create user.");
+//        }
+//    //a.newUser("Sally", "Doe", "1990-04-25", "Female", 5, 10);

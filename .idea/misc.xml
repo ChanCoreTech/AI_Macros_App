@@ -8,6 +8,9 @@
       </list>
     </option>
   </component>
+  <component name="ProjectResources">
+    <resource url="http://maven.apache.org/xsd/maven-4.0.0.xsd" location="$USER_HOME$/Library/Caches/JetBrains/IdeaIC2024.3/extResources/e1f42d95_maven-4.0.0.xsd" />
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
