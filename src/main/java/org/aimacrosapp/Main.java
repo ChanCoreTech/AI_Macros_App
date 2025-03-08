@@ -15,7 +15,7 @@ public class Main {
             String userId = accountLogic.newUser("Autumn", "Doe", "1990-01-01", "Female", 5, 9);
 
             if(userId != null) {
-                boolean userAccountCreated = accountLogic.newUserAccount("adoe1@example.com", "adoe123", "Mid", "803-502-6589", userId);
+                boolean userAccountCreated = accountLogic.newUserAccount("adoe1@example.com", "adoe123", "Cool Girl", "803-502-6589", userId);
             if(userAccountCreated) {
                 System.out.println("User account created successfully!");
             }

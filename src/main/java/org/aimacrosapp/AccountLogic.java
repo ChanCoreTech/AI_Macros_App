@@ -1,5 +1,7 @@
 package org.aimacrosapp;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -9,6 +11,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class AccountLogic {
+    //dotenv allows me to save keys in env file
     private static final Dotenv dotenv = Dotenv.load();
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
@@ -21,6 +24,7 @@ public class AccountLogic {
 
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Prefer", "return=representation");
         conn.setRequestProperty("apikey", DB_KEY); // Using anon key for public access
         conn.setDoOutput(true);
 
@@ -43,11 +47,15 @@ public class AccountLogic {
             if (responseCode == HttpURLConnection.HTTP_CREATED) {
                 // Success, print the response body
                 try (Scanner scanner = new Scanner(conn.getInputStream())) {
+                    StringBuilder jsonResponse = new StringBuilder();
                     while (scanner.hasNext()) {
-                        String jsonResponse = scanner.nextLine();
-                        String userId = extractUserId(jsonResponse);
-                        return userId; // Return the user_id if successful
+                        //String jsonResponse = scanner.nextLine();
+                        jsonResponse.append(scanner.nextLine());
                     }
+                        System.out.println("Raw JSON response: " + jsonResponse.toString());
+                        String user_id = extractUserId(jsonResponse.toString());
+                        System.out.println("Creating user account with user_id: " + user_id);
+                        return user_id; // Return the user_id if successful
                 }
             } else {
                 // Error handling
@@ -67,10 +75,22 @@ public class AccountLogic {
 
     // Method to get the user id from the JSON response
     private String extractUserId(String jsonResponse) {
-        // Parse JSON to get user_id (assuming response is formatted correctly)
-        jsonResponse = jsonResponse.replace("[", "").replace("]", "");
-        String userId = jsonResponse.split(":")[1].replace("\"", "").trim();
-        return userId; // Return the alphanumeric user_id
+        // Ensure response is not empty
+        if (jsonResponse == null || jsonResponse.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // If response is an array, parse it as JSONArray
+            JSONArray jsonArray = new JSONArray(jsonResponse);
+            if (jsonArray.length() > 0) {
+                JSONObject jsonObject = jsonArray.getJSONObject(0);
+                return jsonObject.getString("user_id"); // Extract "user_id"
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // Return null if extraction fails
     }
 
     // Method to create a new user account and insert into the database
@@ -101,8 +121,9 @@ public class AccountLogic {
 
             // Get the response code from the API
             int responseCode = conn.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
+            //System.out.println("Response Code: " + responseCode);
 
+            System.out.println("Sending JSON: " + jsonInputString);
             // Handle the response based on the status code
             if (responseCode == HttpURLConnection.HTTP_CREATED) {
                 // Success
