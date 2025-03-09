@@ -16,24 +16,29 @@ public class AccountLogic {
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
 
+
+
     // Method to create a new user and insert into the database (bypassing authentication)
     public String newUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches) throws IOException {
-        String endpoint = DB_URL + "/rest/v1/users"; // Ensure your custom table name is correct
+        //endpoint is the url for the user table
+        String endpoint = DB_URL + "/rest/v1/users";
         URL url = new URL(endpoint);
+        //open HTTP connection for API call
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
+        //connecting to supabase via API request to post data to user table
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Prefer", "return=representation");
-        conn.setRequestProperty("apikey", DB_KEY); // Using anon key for public access
+        conn.setRequestProperty("apikey", DB_KEY);
         conn.setDoOutput(true);
 
-        // Prepare JSON input for insertion into your table
+        // Prepare JSON input for insertion into user table
         String jsonInputString = String.format(
                 "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", \"height_feet\":%d, \"height_inches\":%d}",
                 first_name, last_name, birth_date, gender, height_feet, height_inches
         );
-
+        //json response
         try (OutputStream os = conn.getOutputStream()) {
             byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
@@ -49,7 +54,6 @@ public class AccountLogic {
                 try (Scanner scanner = new Scanner(conn.getInputStream())) {
                     StringBuilder jsonResponse = new StringBuilder();
                     while (scanner.hasNext()) {
-                        //String jsonResponse = scanner.nextLine();
                         jsonResponse.append(scanner.nextLine());
                     }
                         System.out.println("Raw JSON response: " + jsonResponse.toString());
@@ -95,26 +99,28 @@ public class AccountLogic {
 
     // Method to create a new user account and insert into the database
     public boolean newUserAccount(String email, String password, String nickname, String phone_number, String user_id) throws IOException {
+        //if no user id provided to user account, show error msg
         if (user_id == null || user_id.isEmpty()) {
             System.out.println("Invalid user_id provided");
             return false;
         }
-
+        //endpoint is the url for the user table
         String endpoint = DB_URL + "/rest/v1/user_account";
         URL url = new URL(endpoint);
+        //open HTTP connection for API call
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
+        //connecting to supabase via API request to post data to user table
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("apikey", DB_KEY); // Using anon key for public access
         conn.setDoOutput(true);
 
-        // Prepare JSON input for insertion into your table
+        // Prepare JSON input for insertion into user account table
         String jsonInputString = String.format(
                 "{\"email\":\"%s\", \"password\":\"%s\", \"nickname\":\"%s\", \"phone_number\":\"%s\", \"user_id\":\"%s\"}",
                 email, password, nickname, phone_number, user_id
         );
-
+        //JSON code
         try (OutputStream os = conn.getOutputStream()) {
             byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);

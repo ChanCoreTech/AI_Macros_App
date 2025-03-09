@@ -12,7 +12,7 @@ public class Main {
         try {
             // Example: Hard-coded user data
             AccountLogic accountLogic = new AccountLogic();
-            String userId = accountLogic.newUser("Autumn", "Doe", "1990-01-01", "Female", 5, 9);
+            String userId = accountLogic.newUser("John", "Doe", "1990-01-01", "Male", 5, 9);
 
             if(userId != null) {
                 boolean userAccountCreated = accountLogic.newUserAccount("adoe1@example.com", "adoe123", "Cool Girl", "803-502-6589", userId);
