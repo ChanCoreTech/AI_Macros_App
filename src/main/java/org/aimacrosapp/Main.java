@@ -4,7 +4,7 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) throws IOException {
         try {
-            System.out.println("TESTING TESTING");
+            System.out.println("TESTING TESTING!");
             // Example: Hard-coded user data
             AccountLogic accountLogic = new AccountLogic();
             String userId = accountLogic.createUser("Isaac", "Doe", "1990-01-01", "Male", 5, 9, "medium", null, null, "lose weight");
