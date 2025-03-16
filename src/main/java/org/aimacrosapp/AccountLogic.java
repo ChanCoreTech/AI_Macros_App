@@ -4,17 +4,23 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Scanner;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class AccountLogic {
     //dotenv allows me to save keys in env file
     private static final Dotenv dotenv = Dotenv.load();
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
+    //private static final HttpClient client = HttpClient.newHttpClient();
 
     //method to establish HTTP connections (user insertion only)
     public HttpURLConnection establishDatabaseConnection(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches) throws IOException {
@@ -50,6 +56,21 @@ public class AccountLogic {
         return conn;
     }
 
+    //overloaded method to establish HTTP connections (user update insertion only)
+    public HttpURLConnection establishDatabaseConnection(UUID user_id, String field, String newValue) throws IOException {
+        URL url = new URL(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
+        //open HTTP connection for API call
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        //connecting to supabase via API request to post data to user account table
+        conn.setRequestMethod("PATCH");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Prefer", "return=minimal");
+        conn.setRequestProperty("apikey", DB_KEY);
+        conn.setDoOutput(true);
+        return conn;
+    }
+
     // Method to get the user id from the JSON response
     private String extractUserId(String jsonResponse) {
         // Ensure response is not empty
@@ -67,6 +88,148 @@ public class AccountLogic {
             e.printStackTrace();
         }
         return null; // Return null if extraction fails
+    }
+
+        //method to update/edit a user field
+        public void updateUserField(UUID userId) {
+            Scanner scanner = new Scanner(System.in);
+            // List of valid fields
+            String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "body_type", "experience_level", "activity_level", "primary_goal"};
+
+            System.out.println("Which field do you want to update?");
+            String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
+
+            // Validate field
+            boolean isValidField = false;
+            for (String field : validFields) {
+                if (field.equals(fieldToUpdate)) {
+                    isValidField = true;
+                    break;
+                }
+            }
+
+            if (!isValidField) {
+                System.out.println("Invalid field name.");
+                return;
+            }
+
+            System.out.println("Enter the new value:");
+            String newValue = scanner.nextLine().trim();
+
+            // Call API update method
+            updateDatabase(userId, fieldToUpdate, newValue);
+        }
+
+    public void updateDatabase(UUID userId, String field, String newValue) {
+        try {
+            // Create HTTP client
+            HttpClient client = HttpClient.newHttpClient();
+
+            // Construct the PATCH request body
+            String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
+
+            // Create HTTP PATCH request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
+                    .header("Content-Type", "application/json")
+                    .header("apikey", DB_KEY)
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
+                    .build();
+
+            // Send request and get response
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 204) {
+                System.out.println("Update successful!");
+            } else {
+                System.out.println("Update failed: " + response.statusCode());
+                System.out.println(response.body());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Database update failed.");
+        }
+    }
+    //method to delete user from user table
+    public static void deleteUser(UUID user_id) throws Exception {
+        URI uri = new URI(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("apikey", DB_KEY)  // Supabase requires the API key
+                .header("Authorization", "Bearer " + DB_KEY) // Sometimes needed
+                .header("Content-Type", "application/json")
+                .method("DELETE", HttpRequest.BodyPublishers.noBody()) // DELETE request
+                .build();
+
+        HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+
+        if (response.statusCode() == 204) {
+            System.out.println("User deleted successfully.");
+        } else {
+            System.out.println("Failed to delete user. Status code: " + response.statusCode());
+        }
+    }
+
+    //method to update/edit a user_account field
+    public void updateUserAccountField(UUID user_account_id) {
+        Scanner scanner = new Scanner(System.in);
+        // List of valid fields
+        String[] validFields = {"email", "password", "nickname", "phone_number", "email_second"};
+
+        System.out.println("Which field do you want to update?");
+        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
+
+        // Validate field
+        boolean isValidField = false;
+        for (String field : validFields) {
+            if (field.equals(fieldToUpdate)) {
+                isValidField = true;
+                break;
+            }
+        }
+
+        if (!isValidField) {
+            System.out.println("Invalid field name.");
+            return;
+        }
+
+        System.out.println("Enter the new value:");
+        String newValue = scanner.nextLine().trim();
+
+        // Call API update method
+        updateDatabaseAccount(user_account_id, fieldToUpdate, newValue);
+    }
+
+    //method to update user account table (change to be less redundant)
+    public void updateDatabaseAccount(UUID user_account_id, String field, String newValue) {
+        try {
+            // Create HTTP client
+            HttpClient client = HttpClient.newHttpClient();
+
+            // Construct the PATCH request body
+            String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
+
+            // Create HTTP PATCH request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(DB_URL + "/rest/v1/user_account?user_account_id=eq." + user_account_id))
+                    .header("Content-Type", "application/json")
+                    .header("apikey", DB_KEY)
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
+                    .build();
+
+            // Send request and get response
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 204) {
+                System.out.println("Update successful!");
+            } else {
+                System.out.println("Update failed: " + response.statusCode());
+                System.out.println(response.body());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Database update failed.");
+        }
     }
 
     // Method to create a new user and insert into the database (bypassing authentication)
@@ -172,57 +335,4 @@ public class AccountLogic {
             return false; // Catch any exceptions and return false
         }
     }
-
-    // Method to update a user account
-    public String updateUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches,
-                             String body_type, String experience_level, String activity_level, String primary_goal ) throws IOException {
-        // Prepare JSON input for insertion into user table
-        String jsonInputString = String.format(
-                "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", \"height_feet\":%d, \"height_inches\":%d," +
-                        "\"body_type\":\"%s\", \"experience_level\":\"%s\", \"activity_level\":\"%s\", \"primary_goal\":\"%s\"}",
-                first_name, last_name, birth_date, gender, height_feet, height_inches, body_type, experience_level, activity_level, primary_goal
-        );
-        //call to HTTP connection
-        HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches);
-
-        //json response
-        try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-
-            // Get the response code from the API
-            int responseCode = conn.getResponseCode();
-
-            System.out.println("Sending JSON: " + jsonInputString);
-
-            // Handle the response based on the status code
-            if (responseCode == HttpURLConnection.HTTP_CREATED) {
-                // Success, print the response body
-                try (Scanner scanner = new Scanner(conn.getInputStream())) {
-                    StringBuilder jsonResponse = new StringBuilder();
-                    while (scanner.hasNext()) {
-                        jsonResponse.append(scanner.nextLine());
-                    }
-                    System.out.println("Raw JSON response: " + jsonResponse.toString());
-                    String user_id = extractUserId(jsonResponse.toString());
-                    System.out.println("Creating user account with user_id: " + user_id);
-                    return user_id; // Return the user_id if successful
-                }
-            } else {
-                // Error handling
-                try (Scanner scanner = new Scanner(conn.getErrorStream())) {
-                    while (scanner.hasNext()) {
-                        System.out.println(scanner.nextLine());
-                    }
-                }
-                return null; // Return null if user creation failed
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null; // Catch any exceptions and return null for failure
-    }
-
-
-
 }
