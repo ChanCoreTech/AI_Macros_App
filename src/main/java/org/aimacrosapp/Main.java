@@ -6,7 +6,14 @@ public class Main {
     public static void main(String[] args) throws Exception {
         //try {
             // Example: Hard-coded user data
+            //object for AccountLogic class
             AccountLogic accountLogic = new AccountLogic();
+
+            //object for BotLogic class
+            BotLogic botLogic = new BotLogic();
+
+            //SEND MESSAGE TO BOT
+            botLogic.connectToBot("Hello!");
 
             //DELETE FIELD FROM USERS
             //AccountLogic.deleteUser(UUID.fromString("1102ca65-6133-44b9-86bc-bb6e7602c7db"));
@@ -15,7 +22,7 @@ public class Main {
            //accountLogic.updateUserField(UUID.fromString("1102ca65-6133-44b9-86bc-bb6e7602c7db"));
 
             //UPDATE FIELD FROM USER ACCOUNT
-            accountLogic.updateUserAccountField(UUID.fromString("a09d1ef5-0027-4d86-9c45-7d64763c2832"));
+            //accountLogic.updateUserAccountField(UUID.fromString("a09d1ef5-0027-4d86-9c45-7d64763c2832"));
 
             //CREATE USER
             //String userId = accountLogic.createUser("Isaac", "Doe", "1990-01-01", "Male", 5, 9, "medium", null, null, "lose weight");
