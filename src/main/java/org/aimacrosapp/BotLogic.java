@@ -2,6 +2,7 @@ package org.aimacrosapp;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -13,32 +14,18 @@ import java.util.Scanner;
 public class BotLogic {
     //dotenv allows me to save keys in env file
     private static final Dotenv dotenv = Dotenv.load();
-    private static final String BOT_URL = dotenv.get("MACROS_APP_BOTPRESS_URL");
-    private static final String BOT_KEY = dotenv.get("MACROS_APP_BOTPRESS_API_KEY");
+    private static final String BOT_LINK_URL = dotenv.get("MACROS_APP_BOTPRESS_URL_LINK");
 
-    public HttpResponse<String> connectToBot(String userMessage) throws IOException, InterruptedException {
-        // JSON payload for the message
-        String requestBody = String.format("{\"type\": \"text\", \"text\": \"%s\"}", userMessage);
-
-        // Create HTTP client
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BOT_URL))
-                .header("Authorization", "Bearer " + BOT_KEY)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-                .build();
-
-        // Send request and get response
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        // Print chatbot response
-        System.out.println("Chatbot Response: " + response.body());
-        //log URL and API Key
-        System.out.println("Bot URL: " + BOT_URL);
-        System.out.println("Bot Key: " + BOT_KEY);
-
-        // Return response to process elsewhere
-        return response;
+    public void linkToBot() {
+        try {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(URI.create(BOT_LINK_URL));
+                System.out.println("Opening bot session: " + BOT_LINK_URL);
+            } else {
+                System.out.println("Desktop browsing is not supported on this system.");
+            }
+        } catch (IOException e) {
+            System.err.println("Error opening bot session: " + e.getMessage());
+        }
     }
 }

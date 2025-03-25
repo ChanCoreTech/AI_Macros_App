@@ -1,4 +1,5 @@
 package org.aimacrosapp;
+import javax.swing.*;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -12,8 +13,14 @@ public class Main {
             //object for BotLogic class
             BotLogic botLogic = new BotLogic();
 
-            //SEND MESSAGE TO BOT
-            botLogic.connectToBot("Hello!");
+            //object for SignInGUI class
+            //SignInGUI gui = new SignInGUI();
+
+            //start up SignInGUI
+            SwingUtilities.invokeLater(() -> new SignInGUI());
+
+            //SEND TO BOT
+            //botLogic.linkToBot();
 
             //DELETE FIELD FROM USERS
             //AccountLogic.deleteUser(UUID.fromString("1102ca65-6133-44b9-86bc-bb6e7602c7db"));
