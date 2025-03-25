@@ -6,13 +6,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class CreateAccountGUI {
-    private JLabel lblWelcome;
+    private JLabel lblDirections;
+    private JTextField txtFirst, txtLast, txtBirth, txtGender, txtHeight, txtWeight, txtBodyTyoe, txtXPLevel, txt;
     private JButton btnCreateAccount;
     private JPanel panel1;
 
         public CreateAccountGUI(){
             //initialize elements
-            lblWelcome = new JLabel("Please enter your personal and fitness info below and then click 'Create Account' when finished!");
+            lblDirections = new JLabel("Please enter your personal and fitness info below and then click 'Create Account' when finished!");
             btnCreateAccount = new JButton("Create Account");
 
             //click event to submit new user info
@@ -20,8 +21,21 @@ public class CreateAccountGUI {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     // Action to be performed when the button is clicked
+                    int option = JOptionPane.showOptionDialog(
+                            panel1,
+                            "Button clicked!",
+                            "Message",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.INFORMATION_MESSAGE,
+                            null,
+                            new Object[]{"OK"},  // Custom button text
+                            "OK"
+                    );
 
-                    JOptionPane.showOptionDialog(panel1, "Your account has been created!!");
+                    // Perform an action if "OK" is clicked
+                    if (option == 0) {
+                        new SignInGUI();
+                    }
                 }
             });
 
@@ -47,7 +61,7 @@ public class CreateAccountGUI {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1500, 1000);
 
-// Maximize the window to full-screen size, keeping window decorations
+            // Maximize the window to full-screen size, keeping window decorations
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
             frame.setResizable(true);  // Allow window resizing if necessary
             frame.setLocationRelativeTo(null);  // Center the window
