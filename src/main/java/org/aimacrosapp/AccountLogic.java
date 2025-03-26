@@ -23,7 +23,7 @@ public class AccountLogic {
     //private static final HttpClient client = HttpClient.newHttpClient();
 
     //method to establish HTTP connections (user insertion only)
-    public HttpURLConnection establishDatabaseConnection(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches) throws IOException {
+    public HttpURLConnection establishDatabaseConnection(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs) throws IOException {
         //endpoint is the url for the user table
         String endpoint = DB_URL + "/rest/v1/users";
         URL url = new URL(endpoint);
@@ -94,7 +94,7 @@ public class AccountLogic {
         public void updateUserField(UUID userId) {
             Scanner scanner = new Scanner(System.in);
             // List of valid fields
-            String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "body_type", "experience_level", "activity_level", "primary_goal"};
+            String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "weight_lbs", "body_type", "experience_level", "activity_level", "primary_goal"};
 
             System.out.println("Which field do you want to update?");
             String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
@@ -233,16 +233,19 @@ public class AccountLogic {
     }
 
     // Method to create a new user and insert into the database (bypassing authentication)
-    public String createUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches,
+    public String createUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs,
                              String body_type, String experience_level, String activity_level, String primary_goal ) throws IOException {
         // Prepare JSON input for insertion into user table
         String jsonInputString = String.format(
-                "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", \"height_feet\":%d, \"height_inches\":%d," +
+                "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", " +
+                        "\"height_feet\":%d, \"height_inches\":%d, \"weight_lbs\":%d, " +
                         "\"body_type\":\"%s\", \"experience_level\":\"%s\", \"activity_level\":\"%s\", \"primary_goal\":\"%s\"}",
-                first_name, last_name, birth_date, gender, height_feet, height_inches, body_type, experience_level, activity_level, primary_goal
+                first_name, last_name, birth_date, gender, height_feet, height_inches, weight_lbs,
+                body_type, experience_level, activity_level, primary_goal
         );
+
         //call to HTTP connection
-       HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches);
+       HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches, weight_lbs);
 
         //json response
         try (OutputStream os = conn.getOutputStream()) {

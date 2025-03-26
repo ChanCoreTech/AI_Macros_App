@@ -46,7 +46,7 @@ public class SignInGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1500, 1000);
 
-// Maximize the window to full-screen size, keeping window decorations
+        // Maximize the window to full-screen size, keeping window decorations
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setResizable(true);  // Allow window resizing if necessary
         frame.setLocationRelativeTo(null);  // Center the window

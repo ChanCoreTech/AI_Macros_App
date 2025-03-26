@@ -8,6 +8,7 @@ public class User {
     private String gender;
     private int height_feet;
     private int height_inches;
+    private int weight_lbs;
 
     //optional attributes
     private String body_type;
@@ -17,24 +18,26 @@ public class User {
     //feel free to add more if necessary
 
     //necessary user constructor
-    public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches){
+    public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs){
         this.first_name = first_name;
         this.last_name = last_name;
         this.birth_date = birth_date;
         this.gender = gender;
         this.height_feet = height_feet;
         this.height_inches = height_inches;
+        this.weight_lbs = weight_lbs;
     }
 
     //optional user constructor
-    public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, String body_type, String experience_level,
-                String activity_level, String primary_goal){
+    public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs,
+                String body_type, String experience_level, String activity_level, String primary_goal){
         this.first_name = first_name;
         this.last_name = last_name;
         this.birth_date = birth_date;
         this.gender = gender;
         this.height_feet = height_feet;
         this.height_inches = height_inches;
+        this.weight_lbs = weight_lbs;
         this.body_type = body_type;
         this.experience_level = experience_level;
         this.activity_level = activity_level;
@@ -88,6 +91,14 @@ public class User {
 
     public void setHeight_inches(int height_inches) {
         this.height_inches = height_inches;
+    }
+
+    public int getWeight_lbs() {
+        return weight_lbs;
+    }
+
+    public void setWeight_lbs(int weightLbs) {
+        this.weight_lbs = weightLbs;
     }
 
     public String getBody_type() {
