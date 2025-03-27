@@ -2,7 +2,7 @@ package org.aimacrosapp;
 
 import javax.swing.*;
 
-public class DashboardGUI {
+public class DashboardGUI extends JFrame{
     private JLabel lblDashboard;
 
     public DashboardGUI(){

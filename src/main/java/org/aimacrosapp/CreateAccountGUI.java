@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
-public class CreateAccountGUI {
+public class CreateAccountGUI extends JFrame {
     private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
         lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
 
@@ -51,13 +51,18 @@ public class CreateAccountGUI {
 
             String[] comboOptionsBodyType = {"", "Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
             String[] comboOptionsExperience = {"", "Beginner", "Intermediate", "Advanced"};
-            String[] comboOptionsActivity = {"", "Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extremely Active (5-7 days a week)"};
+            String[] comboOptionsActivity = {"", "Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extreme (5-7 days a week)"};
             String[] comboOptionsPrimary = {"", "Improve Overall Fitness", "Improve Heart Health", "Improve Conditioning", "Physical Therapy", "Lose Weight", "Lose Weight (Rapid)", "Gain Weight", "Gain Weight (Rapid)", "Gain Muscle (Lean)", "Gain Muscle (Bulk)"};
 
             comboBodyType = new JComboBox<>(comboOptionsBodyType);
             comboExperience = new JComboBox<>(comboOptionsExperience);
             comboActivity = new JComboBox<>(comboOptionsActivity);
             comboPrimary = new JComboBox<>(comboOptionsPrimary);
+
+            comboBodyType.setPreferredSize(new Dimension(165, 25));
+            comboExperience.setPreferredSize(new Dimension(165, 25));
+            comboActivity.setPreferredSize(new Dimension(165, 25));
+            comboPrimary.setPreferredSize(new Dimension(165, 25));
 
             //click event to submit new user info
             btnCreateAccount.addActionListener(new ActionListener() {
@@ -93,8 +98,8 @@ public class CreateAccountGUI {
                             "OK"
                     );
 
-                    // Perform an action if "OK" is clicked
-                    if (option == 0) {
+                    // Perform an action if anything is clicked
+                    if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
                         //create a user based on text entries
                         User user = new User(first_name, last_name, birth_date, gender, Integer.parseInt(height_feet), Integer.parseInt(height_inches),
                                 Integer.parseInt(weight_lbs), body_type, experienceLevel, activity_goal, primary_goal);
@@ -115,8 +120,13 @@ public class CreateAccountGUI {
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
-
+                        //open page to sign in using new account
                         new SignInGUI();
+                        //close current page
+                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                        if (topFrame != null) {
+                            topFrame.dispose();
+                        }
                     }
                 }
             });
