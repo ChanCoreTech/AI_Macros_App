@@ -25,8 +25,11 @@ public class CreateAccountGUI extends JFrame {
 
     private JComboBox<String> comboBodyType, comboExperience, comboActivity, comboPrimary;
 
-    private JButton btnCreateAccount;
+    //back arrow for every page
+    ImageIcon backIcon;
+    private JButton btnBack, btnCreateAccount;
     private JPanel panel1;
+    private JPanel topPanel;
 
         public CreateAccountGUI(){
             //initialize elements
@@ -63,6 +66,26 @@ public class CreateAccountGUI extends JFrame {
             comboExperience.setPreferredSize(new Dimension(165, 25));
             comboActivity.setPreferredSize(new Dimension(165, 25));
             comboPrimary.setPreferredSize(new Dimension(165, 25));
+
+            //back button image logic
+            ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
+            btnBack = new JButton(backIcon);
+            btnBack.setBorderPainted(false);
+            btnBack.setContentAreaFilled(false);
+
+            //back button click event
+            btnBack.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    //go back to Sign In
+                    new SignInGUI();
+                    //close current page
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                    if (topFrame != null) {
+                        topFrame.dispose();
+                    }
+                }
+            });
 
             //click event to submit new user info
             btnCreateAccount.addActionListener(new ActionListener() {
@@ -131,8 +154,63 @@ public class CreateAccountGUI extends JFrame {
                 }
             });
 
+//            private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
+//                    lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
+//
+//            private JTextField txtFirst = new JTextField(15),
+//                    txtLast = new JTextField(15),
+//                    txtBirth = new JTextField(15),
+//                    txtGender = new JTextField(15),
+//                    txtHeightFeet = new JTextField(15),
+//                    txtHeightInches = new JTextField(15),
+//                    txtWeight = new JTextField(15),
+//                    txtEmail = new JTextField(15),
+//                    txtPassword = new JTextField(15),
+//                    txtNickname = new JTextField(15),
+//                    txtPhoneNumber = new JTextField(15),
+//                    txtEmailSecond = new JTextField(15);
+//
+//            private JComboBox<String> comboBodyType, comboExperience, comboActivity, comboPrimary;
+
+            //resize all elements
+
+            //WIP
+            Font mainFont = new Font("Verdana", Font.PLAIN, 15);
+            Font boldFont = new Font("Verdana", Font.BOLD, 15);
+            lblDirections.setFont(mainFont);
+            lblFirst.setFont(mainFont);
+            lblLast.setFont(mainFont);
+            lblBirth.setFont(mainFont);
+            lblGender.setFont(mainFont);
+            lblHeightFeet.setFont(mainFont);
+            lblHeightInches.setFont(mainFont);
+            lblWeight.setFont(mainFont);
+            lblBodyType.setFont(mainFont);
+            lblExperience.setFont(mainFont);
+            lblActivity.setFont(mainFont);
+            lblPrimary.setFont(mainFont);
+            lblEmail.setFont(mainFont);
+            lblPassword.setFont(mainFont);
+            lblNickname.setFont(mainFont);
+            lblPhoneNumber.setFont(mainFont);
+            lblEmailSecond.setFont(mainFont);
+
+//            btnLogin.setFont(boldFont);
+//            btnCreate.setFont(boldFont);
+//            btnForgot.setFont(boldFont);
+            txtEmail.setFont(mainFont);
+            txtPassword.setFont(mainFont);
+
+            // Top panel with null layout for the back button
+            topPanel = new JPanel(null); // Null layout
+            topPanel.setBackground(Color.WHITE);
+            topPanel.setPreferredSize(new Dimension(60, 60)); // Fixed height
+            btnBack.setBounds(10, 10, 50, 50); // Positioning manually
+            topPanel.add(btnBack);
+
             //set up panel
             panel1 = new JPanel(new GridBagLayout());
+            panel1.setBackground(Color.LIGHT_GRAY);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
 
@@ -261,7 +339,7 @@ public class CreateAccountGUI extends JFrame {
             panel1.add(btnCreateAccount, gbc);
 
             //setup JFrame
-            JFrame frame = new JFrame("Sign In");
+            JFrame frame = new JFrame("Create Account");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1500, 1000);
 
@@ -270,8 +348,10 @@ public class CreateAccountGUI extends JFrame {
             frame.setResizable(true);  // Allow window resizing if necessary
             frame.setLocationRelativeTo(null);  // Center the window
 
-            //make visible
-            frame.add(panel1);
+            // Set layout to BorderLayout and add components
+            frame.setLayout(new BorderLayout());
+            frame.add(topPanel, BorderLayout.NORTH);
+            frame.add(panel1, BorderLayout.CENTER);
             frame.setVisible(true);
         }
     }

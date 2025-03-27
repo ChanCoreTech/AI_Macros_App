@@ -7,12 +7,11 @@ import java.awt.event.*;
 public class SignInGUI extends JFrame{
     private JLabel lblWelcome, lblEmail, lblPassword;
     //back arrow for every page
-    ImageIcon backIcon = new ImageIcon(getClass().getResource("/imgs/back_arrow.png"));
-    private JButton btnBack = new JButton(backIcon);
-    private JButton btnCreate;
-    private JButton btnLogin;
-    private JButton btnForgot;
+    ImageIcon backIcon;
+    private JButton btnBack, btnCreate, btnLogin, btnForgot;
+
     private JPanel panel1;
+    private JPanel topPanel;
 
     private JTextField txtEmail = new JTextField(15);
     private JTextField txtPassword = new JTextField(15);
@@ -25,6 +24,26 @@ public class SignInGUI extends JFrame{
         btnCreate = new JButton("Sign Up");
         btnLogin = new JButton("Login");
         btnForgot = new JButton("Forgot Password");
+
+        //back button image logic
+        ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
+        btnBack = new JButton(backIcon);
+        btnBack.setBorderPainted(false);
+        btnBack.setContentAreaFilled(false);
+
+        //back button click event
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //go back to Sign In
+                new SignInGUI();
+                //close current page
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                if (topFrame != null) {
+                    topFrame.dispose();
+                }
+            }
+        });
 
         //create account click event
         btnCreate.addActionListener(new ActionListener() {
@@ -84,75 +103,85 @@ public class SignInGUI extends JFrame{
             }
         });
 
+        //resize all elements
+        Font mainFont = new Font("Verdana", Font.PLAIN, 15);
+        Font boldFont = new Font("Verdana", Font.BOLD, 15);
+        lblWelcome.setFont(mainFont);
+        lblEmail.setFont(mainFont);
+        lblPassword.setFont(mainFont);
+        btnLogin.setFont(boldFont);
+        btnCreate.setFont(boldFont);
+        btnForgot.setFont(boldFont);
+        txtEmail.setFont(mainFont);
+        txtPassword.setFont(mainFont);
+
+        // Top panel with null layout for the back button
+        topPanel = new JPanel(null); // Null layout
+        topPanel.setBackground(Color.WHITE);
+        topPanel.setPreferredSize(new Dimension(60, 60)); // Fixed height
+        btnBack.setBounds(10, 10, 50, 50); // Positioning manually
+        topPanel.add(btnBack);
+
         // Set up panel
         panel1 = new JPanel(new GridBagLayout());
+        panel1.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Welcome Label (Centered at the top)
+        // Welcome label
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 2; // Span across two columns
+        gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         panel1.add(lblWelcome, gbc);
 
         // Reset gridwidth for other components
         gbc.gridwidth = 1;
 
-        // Email Label (Left of text box)
+        // Email label and text field
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.EAST;
         panel1.add(lblEmail, gbc);
 
-        // Email Text Field
         gbc.gridx = 1;
-        gbc.gridy = 1;
-        gbc.anchor = GridBagConstraints.WEST;
         panel1.add(txtEmail, gbc);
 
-        // Password Label (Left of text box)
+        // Password label and text field
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.EAST;
         panel1.add(lblPassword, gbc);
 
-        // Password Text Field
         gbc.gridx = 1;
-        gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
         panel1.add(txtPassword, gbc);
 
-        // Buttons (Next to each other)
+        // Buttons
         gbc.gridx = 0;
         gbc.gridy = 3;
-        gbc.gridwidth = 1; // Reset width
         panel1.add(btnLogin, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 4;
-        gbc.gridwidth = 1; // Reset width
         panel1.add(btnCreate, gbc);
 
+        gbc.fill = GridBagConstraints.NONE;
         gbc.gridx = 1;
         gbc.gridy = 4;
-        gbc.gridwidth = 1; // Reset width
-        gbc.fill = GridBagConstraints.CENTER;
         panel1.add(btnForgot, gbc);
 
-        //setup JFrame
+        // Setup JFrame
         JFrame frame = new JFrame("Sign In");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1500, 1000);
-
-        // Maximize the window to full-screen size, keeping window decorations
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        frame.setResizable(true);  // Allow window resizing if necessary
-        frame.setLocationRelativeTo(null);  // Center the window
+        frame.setResizable(true);
+        frame.setLocationRelativeTo(null);
 
-        //make visible
-        frame.add(panel1);
+        // Set layout to BorderLayout and add components
+        frame.setLayout(new BorderLayout());
+        frame.add(topPanel, BorderLayout.NORTH);
+        frame.add(panel1, BorderLayout.CENTER);
         frame.setVisible(true);
     }
 }
