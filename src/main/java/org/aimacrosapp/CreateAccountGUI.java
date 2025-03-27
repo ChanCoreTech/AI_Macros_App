@@ -28,24 +28,6 @@ public class CreateAccountGUI {
     private JButton btnCreateAccount;
     private JPanel panel1;
 
-    //values of text fields
-    private String first_name = txtFirst.getText();
-    private String last_name = txtLast.getText();
-    private String birth_date = txtBirth.getText();
-    private String gender = txtGender.getText();
-    private String height_feet = txtHeightFeet.getText();
-    private String height_inches = txtHeightInches.getText();
-    private String weight_lbs = txtWeight.getText();
-    private String body_type = (String) comboBodyType.getSelectedItem();
-    private String experienceLevel = (String) comboExperience.getSelectedItem();
-    private String activity_goal = (String) comboActivity.getSelectedItem();
-    private String primary_goal = (String) comboPrimary.getSelectedItem();
-    private String email = txtEmail.getText();
-    private String password = txtPassword.getText();
-    private String nickname = txtNickname.getText();
-    private String phone_number = txtPhoneNumber.getText();
-    private String email_second = txtEmailSecond.getText();
-
         public CreateAccountGUI(){
             //initialize elements
             lblDirections = new JLabel("Please enter your personal and fitness info below and then click 'Create Account' when finished!");
@@ -67,10 +49,10 @@ public class CreateAccountGUI {
             lblEmailSecond = new JLabel("Secondary Email:");
             btnCreateAccount = new JButton("Create Account");
 
-            String[] comboOptionsBodyType = {"Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
-            String[] comboOptionsExperience = {"Beginner", "Intermediate", "Advanced"};
-            String[] comboOptionsActivity = {"Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extremely Active (5-7 days a week)"};
-            String[] comboOptionsPrimary = {"Improve Overall Fitness", "Improve Heart Health", "Improve Conditioning", "Physical Therapy", "Lose Weight", "Lose Weight (Rapid)", "Gain Weight", "Gain Weight (Rapid)", "Gain Muscle (Lean)", "Gain Muscle (Bulk)"};
+            String[] comboOptionsBodyType = {"", "Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
+            String[] comboOptionsExperience = {"", "Beginner", "Intermediate", "Advanced"};
+            String[] comboOptionsActivity = {"", "Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extremely Active (5-7 days a week)"};
+            String[] comboOptionsPrimary = {"", "Improve Overall Fitness", "Improve Heart Health", "Improve Conditioning", "Physical Therapy", "Lose Weight", "Lose Weight (Rapid)", "Gain Weight", "Gain Weight (Rapid)", "Gain Muscle (Lean)", "Gain Muscle (Bulk)"};
 
             comboBodyType = new JComboBox<>(comboOptionsBodyType);
             comboExperience = new JComboBox<>(comboOptionsExperience);
@@ -81,6 +63,24 @@ public class CreateAccountGUI {
             btnCreateAccount.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    //values of text fields
+                    String first_name = txtFirst.getText();
+                    String last_name = txtLast.getText();
+                    String birth_date = txtBirth.getText();
+                    String gender = txtGender.getText();
+                    String height_feet = txtHeightFeet.getText();
+                    String height_inches = txtHeightInches.getText();
+                    String weight_lbs = txtWeight.getText();
+                    String body_type = (String) comboBodyType.getSelectedItem();
+                    String experienceLevel = (String) comboExperience.getSelectedItem();
+                    String activity_goal = (String) comboActivity.getSelectedItem();
+                    String primary_goal = (String) comboPrimary.getSelectedItem();
+                    String email = txtEmail.getText();
+                    String password = txtPassword.getText();
+                    String nickname = txtNickname.getText();
+                    String phone_number = txtPhoneNumber.getText();
+                    String email_second = txtEmailSecond.getText();
+
                     // Action to be performed when the button is clicked
                     int option = JOptionPane.showOptionDialog(
                             panel1,
