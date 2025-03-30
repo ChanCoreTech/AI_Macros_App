@@ -3,13 +3,14 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import javax.swing.*;
+import java.io.*;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Scanner;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +21,8 @@ public class AccountLogic {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
-    //private static final HttpClient client = HttpClient.newHttpClient();
+//    private static final String SESSION_FILE = "user_session.txt"; // File to store session data
+//    private static final String CREDENTIALS_FILE = "credentials.txt";
 
     //method to establish HTTP connections (user insertion only)
     public HttpURLConnection establishDatabaseConnection(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs) throws IOException {
@@ -90,35 +92,35 @@ public class AccountLogic {
         return null; // Return null if extraction fails
     }
 
-        //method to update/edit a user field
-        public void updateUserField(UUID userId) {
-            Scanner scanner = new Scanner(System.in);
-            // List of valid fields
-            String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "weight_lbs", "body_type", "experience_level", "activity_level", "primary_goal"};
+    //method to update/edit a user field
+    public void updateUserField(UUID userId) {
+        Scanner scanner = new Scanner(System.in);
+        // List of valid fields
+        String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "weight_lbs", "body_type", "experience_level", "activity_level", "primary_goal"};
 
-            System.out.println("Which field do you want to update?");
-            String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
+        System.out.println("Which field do you want to update?");
+        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
 
-            // Validate field
-            boolean isValidField = false;
-            for (String field : validFields) {
-                if (field.equals(fieldToUpdate)) {
-                    isValidField = true;
-                    break;
-                }
+        // Validate field
+        boolean isValidField = false;
+        for (String field : validFields) {
+            if (field.equals(fieldToUpdate)) {
+                isValidField = true;
+                break;
             }
-
-            if (!isValidField) {
-                System.out.println("Invalid field name.");
-                return;
-            }
-
-            System.out.println("Enter the new value:");
-            String newValue = scanner.nextLine().trim();
-
-            // Call API update method
-            updateDatabase(userId, fieldToUpdate, newValue);
         }
+
+        if (!isValidField) {
+            System.out.println("Invalid field name.");
+            return;
+        }
+
+        System.out.println("Enter the new value:");
+        String newValue = scanner.nextLine().trim();
+
+        // Call API update method
+        updateDatabase(userId, fieldToUpdate, newValue);
+    }
 
     public void updateDatabase(UUID userId, String field, String newValue) {
         try {
@@ -150,6 +152,7 @@ public class AccountLogic {
             System.out.println("Database update failed.");
         }
     }
+
     //method to delete user from user table
     public static void deleteUser(UUID user_id) throws Exception {
         URI uri = new URI(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
@@ -200,7 +203,7 @@ public class AccountLogic {
         updateDatabaseAccount(user_account_id, fieldToUpdate, newValue);
     }
 
-    //method to update user account table (change to be less redundant)
+    //method to update user account table
     public void updateDatabaseAccount(UUID user_account_id, String field, String newValue) {
         try {
             // Create HTTP client
@@ -234,7 +237,7 @@ public class AccountLogic {
 
     // Method to create a new user and insert into the database (bypassing authentication)
     public String createUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs,
-                             String body_type, String experience_level, String activity_level, String primary_goal ) throws IOException {
+                             String body_type, String experience_level, String activity_level, String primary_goal) throws IOException {
         // Prepare JSON input for insertion into user table
         String jsonInputString = String.format(
                 "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", " +
@@ -245,7 +248,7 @@ public class AccountLogic {
         );
 
         //call to HTTP connection
-       HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches, weight_lbs);
+        HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches, weight_lbs);
 
         //json response
         try (OutputStream os = conn.getOutputStream()) {
@@ -265,10 +268,10 @@ public class AccountLogic {
                     while (scanner.hasNext()) {
                         jsonResponse.append(scanner.nextLine());
                     }
-                        System.out.println("Raw JSON response: " + jsonResponse.toString());
-                        String user_id = extractUserId(jsonResponse.toString());
-                        System.out.println("Creating user account with user_id: " + user_id);
-                        return user_id; // Return the user_id if successful
+                    System.out.println("Raw JSON response: " + jsonResponse.toString());
+                    String user_id = extractUserId(jsonResponse.toString());
+                    System.out.println("Creating user account with user_id: " + user_id);
+                    return user_id; // Return the user_id if successful
                 }
             } else {
                 // Error handling
@@ -338,4 +341,253 @@ public class AccountLogic {
             return false; // Catch any exceptions and return false
         }
     }
+
+    // Method to sign in a user
+    public boolean signIn(String email, String password) {
+        try {
+            // Encode email to be URL-safe
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+            // Construct API request (adjust table name accordingly)
+            String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail;
+
+            // Print the URL for debugging
+            System.out.println("Requesting: " + requestUrl);
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(requestUrl))
+                    .header("apikey", DB_KEY)
+                    .header("Authorization", "Bearer " + DB_KEY)
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Print response status and body
+            System.out.println("Response Code: " + response.statusCode());
+            System.out.println("Response Body: " + response.body());
+
+            if (response.statusCode() == 200) {
+                JSONArray jsonArray = new JSONArray(response.body());
+                if (jsonArray.length() == 0) {
+                    System.out.println("User not found.");
+                    return false;
+                }
+
+                JSONObject userObject = jsonArray.getJSONObject(0);
+                String storedPassword = userObject.getString("password"); // Assuming plaintext, but should be hashed!
+
+                // Compare password (ideally, compare hashed values)
+                if (password.equals(storedPassword)) {
+                    System.out.println("Sign-in successful!");
+                    return true;
+                } else {
+                    System.out.println("Incorrect password.");
+                    return false;
+                }
+            } else {
+                System.out.println("Sign-in failed: " + response.statusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Verification questions method before resetting password
+    public boolean confirmAccount(String email, String nickname) {
+        try {
+            // Encode email to be URL-safe
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+            // Construct API request (adjust table name accordingly)
+            String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail + "&nickname=eq." + URLEncoder.encode(nickname, StandardCharsets.UTF_8);
+
+            // Print the URL for debugging
+            System.out.println("Requesting: " + requestUrl);
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(requestUrl))
+                    .header("apikey", DB_KEY)
+                    .header("Authorization", "Bearer " + DB_KEY)
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Print response status and body
+            System.out.println("Response Code: " + response.statusCode());
+            System.out.println("Response Body: " + response.body());
+            System.out.println("Encoded Email: " + encodedEmail);
+            System.out.println("Encoded Nickname: " + URLEncoder.encode(nickname, StandardCharsets.UTF_8));
+
+
+            if (response.statusCode() == 200) {
+                JSONArray jsonArray = new JSONArray(response.body());
+                if (jsonArray.length() == 0) {
+                    System.out.println("User not found.");
+                    return false;
+                }
+
+                JSONObject userObject = jsonArray.getJSONObject(0);
+                String storedNickname = userObject.getString("nickname");
+
+                // Compare password (ideally, compare hashed values)
+                if (nickname.equals(storedNickname)) {
+                    System.out.println("successful!");
+                    return true;
+                } else {
+                    System.out.println("Incorrect.");
+                    return false;
+                }
+            } else {
+                System.out.println("failed: " + response.statusCode());
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Method to reset password after verification
+    public void updatePassword(UUID userId, String password, String confirmPassword) {
+
+
+        //extract user id?
+
+
+        // Validate field
+        boolean isMatch = false;
+            if (password.equals(confirmPassword)) {
+                isMatch = true;
+            }
+
+        if (!isMatch) {
+            System.out.println("Field names do not match.");
+            return;
+        }
+
+        // Call API update method
+        updateDatabase(userId, password, confirmPassword);
+    }
+
+    // Method to update multiple user_account fields based on changes in the GUI
+//    public void updateUserAccountFields(UUID user_account_id, Map<String, String> updatedFields) {
+//        try {
+//            // Create HTTP client
+//            HttpClient client = HttpClient.newHttpClient();
+//
+//            // Construct the PATCH request body dynamically
+//            StringBuilder jsonInputStringBuilder = new StringBuilder("{");
+//
+//            // Loop through the updated fields and append them to the request body
+//            boolean first = true;
+//            for (Map.Entry<String, String> entry : updatedFields.entrySet()) {
+//                if (!first) {
+//                    jsonInputStringBuilder.append(", ");
+//                }
+//                jsonInputStringBuilder.append("\"")
+//                        .append(entry.getKey())
+//                        .append("\": \"")
+//                        .append(entry.getValue())
+//                        .append("\"");
+//                first = false;
+//            }
+//
+//            // Close the JSON object
+//            jsonInputStringBuilder.append("}");
+//
+//            // Create the PATCH request
+//            String jsonInputString = jsonInputStringBuilder.toString();
+//            HttpRequest request = HttpRequest.newBuilder()
+//                    .uri(URI.create(DB_URL + "/rest/v1/user_account?user_account_id=eq." + user_account_id))
+//                    .header("Content-Type", "application/json")
+//                    .header("apikey", DB_KEY)
+//                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
+//                    .build();
+//
+//            // Send request and get response
+//            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+//
+//            if (response.statusCode() == 200 || response.statusCode() == 204) {
+//                System.out.println("Update successful!");
+//            } else {
+//                System.out.println("Update failed: " + response.statusCode());
+//                System.out.println(response.body());
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            System.out.println("Database update failed.");
+//        }
+//    }
+
+    // Example method to get updated fields from GUI text fields
+//    public Map<String, String> getUpdatedFieldsFromGUI() {
+//        Map<String, String> updatedFields = new HashMap<>();
+//
+//        // Get current values from the text fields in the GUI
+//        String newEmail = emailTextField.getText().trim();
+//        String newPassword = passwordTextField.getText().trim();
+//        String newNickname = nicknameTextField.getText().trim();
+//        String newPhoneNumber = phoneNumberTextField.getText().trim();
+//        String newEmailSecond = emailSecondTextField.getText().trim();
+//
+//        // Compare each field with the original value and add to the map if changed
+//        if (!newEmail.equals(originalEmail)) {
+//            updatedFields.put("email", newEmail);
+//        }
+//        if (!newPassword.equals(originalPassword)) {
+//            updatedFields.put("password", newPassword);
+//        }
+//        if (!newNickname.equals(originalNickname)) {
+//            updatedFields.put("nickname", newNickname);
+//        }
+//        if (!newPhoneNumber.equals(originalPhoneNumber)) {
+//            updatedFields.put("phone_number", newPhoneNumber);
+//        }
+//        if (!newEmailSecond.equals(originalEmailSecond)) {
+//            updatedFields.put("email_second", newEmailSecond);
+//        }
+//
+//        return updatedFields;
+//    }
+
+
+
+//    // Method to start a user session (save user ID)
+//    public void startUserSession(String userId) {
+//        try (FileWriter fileWriter = new FileWriter(SESSION_FILE)) {
+//            fileWriter.write(userId);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    // Method to check if a user session exists (returns user ID or null)
+//    public String getUserSession() {
+//        File file = new File(SESSION_FILE);
+//        if (file.exists()) {
+//            try (Scanner scanner = new Scanner(file)) {
+//                return scanner.nextLine();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        return null;
+//    }
+//
+//    // Method to end the user session (log out)
+//    public void endUserSession() {
+//        File file = new File(SESSION_FILE);
+//        if (file.exists()) {
+//            file.delete();
+//        }
+//        System.out.println("User signed out.");
+//    }
 }

@@ -62,10 +62,10 @@ public class CreateAccountGUI extends JFrame {
             comboActivity = new JComboBox<>(comboOptionsActivity);
             comboPrimary = new JComboBox<>(comboOptionsPrimary);
 
-            comboBodyType.setPreferredSize(new Dimension(165, 25));
-            comboExperience.setPreferredSize(new Dimension(165, 25));
-            comboActivity.setPreferredSize(new Dimension(165, 25));
-            comboPrimary.setPreferredSize(new Dimension(165, 25));
+            comboBodyType.setPreferredSize(new Dimension(180, 25));
+            comboExperience.setPreferredSize(new Dimension(180, 25));
+            comboActivity.setPreferredSize(new Dimension(180, 25));
+            comboPrimary.setPreferredSize(new Dimension(180, 25));
 
             //back button image logic
             ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
@@ -109,10 +109,31 @@ public class CreateAccountGUI extends JFrame {
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
 
+                    //create a user based on text entries
+                    User user = new User(first_name, last_name, birth_date, gender, Integer.parseInt(height_feet), Integer.parseInt(height_inches),
+                            Integer.parseInt(weight_lbs), body_type, experienceLevel, activity_goal, primary_goal);
+                    //created an account for that user based on text entries
+                    UserAccount userAccount = new UserAccount(user, email, password, nickname, phone_number, email_second);
+                    //created account logic object
+                    AccountLogic accountLogic = new AccountLogic();
+                    try {
+                        //userId has been retrieved along with creating a new user based on what they entered
+                        String userId = accountLogic.createUser(user.getFirst_name(), user.getLast_name(), user.getBirth_date(), user.getGender(), user.getHeight_feet(),
+                                user.getHeight_inches(), user.getWeight_lbs(), user.getBody_type(), user.getExperience_level(), user.getActivity_level(),
+                                user.getPrimary_goal());
+                        //if user is created, create a user account using that user id retrieved
+                        if(userId != null){
+                            boolean userAccountCreated = accountLogic.createUserAccount(userAccount.getEmail(), userAccount.getPassword(), userAccount.getNickname(),
+                                    userAccount.getPhone_number(), userAccount.getEmail_second(), userId);
+                        }
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
                     // Action to be performed when the button is clicked
                     int option = JOptionPane.showOptionDialog(
                             panel1,
-                            "Button clicked!",
+                            "Thanks! Your account has been created!",
                             "Message",
                             JOptionPane.DEFAULT_OPTION,
                             JOptionPane.INFORMATION_MESSAGE,
@@ -123,26 +144,6 @@ public class CreateAccountGUI extends JFrame {
 
                     // Perform an action if anything is clicked
                     if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
-                        //create a user based on text entries
-                        User user = new User(first_name, last_name, birth_date, gender, Integer.parseInt(height_feet), Integer.parseInt(height_inches),
-                                Integer.parseInt(weight_lbs), body_type, experienceLevel, activity_goal, primary_goal);
-                        //created an account for that user based on text entries
-                        UserAccount userAccount = new UserAccount(user, email, password, nickname, phone_number, email_second);
-                        //created account logic object
-                        AccountLogic accountLogic = new AccountLogic();
-                        try {
-                            //userId has been retrieved along with creating a new user based on what they entered
-                            String userId = accountLogic.createUser(user.getFirst_name(), user.getLast_name(), user.getBirth_date(), user.getGender(), user.getHeight_feet(),
-                                    user.getHeight_inches(), user.getWeight_lbs(), user.getBody_type(), user.getExperience_level(), user.getActivity_level(),
-                                    user.getPrimary_goal());
-                            //if user is created, create a user account using that user id retrieved
-                            if(userId != null){
-                                boolean userAccountCreated = accountLogic.createUserAccount(userAccount.getEmail(), userAccount.getPassword(), userAccount.getNickname(),
-                                        userAccount.getPhone_number(), userAccount.getEmail_second(), userId);
-                            }
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
                         //open page to sign in using new account
                         new SignInGUI();
                         //close current page
@@ -154,30 +155,12 @@ public class CreateAccountGUI extends JFrame {
                 }
             });
 
-//            private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
-//                    lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
-//
-//            private JTextField txtFirst = new JTextField(15),
-//                    txtLast = new JTextField(15),
-//                    txtBirth = new JTextField(15),
-//                    txtGender = new JTextField(15),
-//                    txtHeightFeet = new JTextField(15),
-//                    txtHeightInches = new JTextField(15),
-//                    txtWeight = new JTextField(15),
-//                    txtEmail = new JTextField(15),
-//                    txtPassword = new JTextField(15),
-//                    txtNickname = new JTextField(15),
-//                    txtPhoneNumber = new JTextField(15),
-//                    txtEmailSecond = new JTextField(15);
-//
-//            private JComboBox<String> comboBodyType, comboExperience, comboActivity, comboPrimary;
-
             //resize all elements
-
-            //WIP
+            Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
+            Font comboFont = new Font("Verdana", Font.PLAIN, 12);
             Font boldFont = new Font("Verdana", Font.BOLD, 15);
-            lblDirections.setFont(mainFont);
+            lblDirections.setFont(headerFont);
             lblFirst.setFont(mainFont);
             lblLast.setFont(mainFont);
             lblBirth.setFont(mainFont);
@@ -195,11 +178,24 @@ public class CreateAccountGUI extends JFrame {
             lblPhoneNumber.setFont(mainFont);
             lblEmailSecond.setFont(mainFont);
 
-//            btnLogin.setFont(boldFont);
-//            btnCreate.setFont(boldFont);
-//            btnForgot.setFont(boldFont);
+            btnCreateAccount.setFont(boldFont);
+
+            txtFirst.setFont(mainFont);
+            txtLast.setFont(mainFont);
+            txtBirth.setFont(mainFont);
+            txtGender.setFont(mainFont);
+            txtHeightFeet.setFont(mainFont);
+            txtHeightInches.setFont(mainFont);
+            txtWeight.setFont(mainFont);
             txtEmail.setFont(mainFont);
             txtPassword.setFont(mainFont);
+            txtNickname.setFont(mainFont);
+            txtPhoneNumber.setFont(mainFont);
+            txtEmailSecond.setFont(mainFont);
+            comboBodyType.setFont(comboFont);
+            comboExperience.setFont(comboFont);
+            comboActivity.setFont(comboFont);
+            comboPrimary.setFont(comboFont);
 
             // Top panel with null layout for the back button
             topPanel = new JPanel(null); // Null layout
