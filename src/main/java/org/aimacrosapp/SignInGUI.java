@@ -68,7 +68,7 @@ public class SignInGUI extends JFrame{
             }
         });
 
-// Login button click event
+        // Login button click event
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

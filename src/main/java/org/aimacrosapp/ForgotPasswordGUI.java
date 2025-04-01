@@ -103,7 +103,7 @@ public class ForgotPasswordGUI extends JFrame {
                 }
 
                 if(clickStage == 1){
-                    boolean u = accountLogic.updatePassword();
+                    //boolean u = accountLogic.updatePassword();
                 }
 
 //                //open a new page to create your account

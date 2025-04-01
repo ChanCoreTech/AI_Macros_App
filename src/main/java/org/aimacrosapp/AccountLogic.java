@@ -454,28 +454,27 @@ public class AccountLogic {
             return false;
         }
     }
-
     // Method to reset password after verification
-    public void updatePassword(UUID userId, String password, String confirmPassword) {
-
-
-        //extract user id?
-
-
-        // Validate field
-        boolean isMatch = false;
-            if (password.equals(confirmPassword)) {
-                isMatch = true;
-            }
-
-        if (!isMatch) {
-            System.out.println("Field names do not match.");
-            return;
-        }
-
-        // Call API update method
-        updateDatabase(userId, password, confirmPassword);
-    }
+//    public void updatePassword(String email, String password, String confirmPassword) {
+//
+//
+//        //extract user id?
+//
+//
+//        // Validate field
+//        boolean isMatch = false;
+//            if (password.equals(confirmPassword)) {
+//                isMatch = true;
+//            }
+//
+//        if (!isMatch) {
+//            System.out.println("Field names do not match.");
+//            return;
+//        }
+//
+//        // Call API update method
+//        updateDatabase(userId, password, confirmPassword);
+//    }
 
     // Method to update multiple user_account fields based on changes in the GUI
 //    public void updateUserAccountFields(UUID user_account_id, Map<String, String> updatedFields) {
@@ -590,4 +589,6 @@ public class AccountLogic {
 //        }
 //        System.out.println("User signed out.");
 //    }
+
+
 }
