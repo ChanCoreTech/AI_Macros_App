@@ -1,18 +1,25 @@
 package org.aimacrosapp;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.net.URI;
 
 public class DashboardGUI extends JFrame {
+    //dotenv allows me to save keys in env file
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String BOTPRESS_URL = dotenv.get("MACROS_APP_BOTPRESS_URL_LINK");
+
     private JButton btnBack;
     private JPanel panel1;
     private JPanel lblPanel;
     private JPanel botPanel;
     private JPanel topPanel;
-    private JLabel lblPrimaryGoal, lblCalories, lblCarbs, lblProtein, lblFats;
+    private JLabel lblPrimaryGoal, lblCalories, lblCarbs, lblProtein, lblFats, lblGoalCalories, lblGoalCarbs, lblGoalProtein, lblGoalFats, lblBot;
 
     public DashboardGUI() {
         // Back button
@@ -26,6 +33,11 @@ public class DashboardGUI extends JFrame {
         lblCarbs = new JLabel("Today's Carbs: ");
         lblProtein = new JLabel("Today's Protein: ");
         lblFats = new JLabel("Today's Fats: ");
+        lblGoalCalories = new JLabel("Daily Calorie Goal: ");
+        lblGoalCarbs = new JLabel("Daily Carbs Goal: ");
+        lblGoalProtein = new JLabel("Daily Protein Goal: ");
+        lblGoalFats = new JLabel("Daily Fats Goal: ");
+        lblBot = new JLabel("Click on 'Joe', your AI fitness coach for daily macros, fitness, and health guidance!");
 
         btnBack.addActionListener(new ActionListener() {
             @Override
@@ -92,40 +104,104 @@ public class DashboardGUI extends JFrame {
         gbc.gridy = 1;
         gbc.gridwidth = 2;
         JLabel lblWelcome = new JLabel("This is your personal dashboard. Click the displayed icons to explore!", SwingConstants.CENTER);
-        lblWelcome.setFont(new Font("Helvetica", Font.BOLD, 20));
+
+        Font mainFont = new Font("Verdana", Font.PLAIN, 15);
+        Font smallFont = new Font("Verdana", Font.BOLD, 12);
+        Font boldFont = new Font("Verdana", Font.BOLD, 15);
+        lblWelcome.setFont(new Font("Helvetica", Font.BOLD, 25));
+
+        lblPrimaryGoal.setFont(mainFont);
+        lblCalories.setFont(mainFont);
+        lblCarbs.setFont(mainFont);
+        lblProtein.setFont(mainFont);
+        lblFats.setFont(mainFont);
+        lblGoalCalories.setFont(mainFont);
+        lblGoalCarbs.setFont(mainFont);
+        lblGoalProtein.setFont(mainFont);
+        lblGoalFats.setFont(mainFont);
+        lblBot.setFont(smallFont);
         panel1.add(lblWelcome, gbc);
 
-        // Now add labels to lblPanel
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        lblPanel.add(lblPrimaryGoal, gbc);
-        gbc.gridy = 1;
-        lblPanel.add(lblCalories, gbc);
-        gbc.gridy = 2;
-        lblPanel.add(lblCarbs, gbc);
-        gbc.gridy = 3;
-        lblPanel.add(lblProtein, gbc);
-        gbc.gridy = 4;
-        lblPanel.add(lblFats, gbc);
+        lblPanel = new JPanel(new GridBagLayout());
+        lblPanel.setBackground(Color.LIGHT_GRAY);
+        GridBagConstraints labelGbc = new GridBagConstraints();
+        labelGbc.insets = new Insets(10, 30, 10, 30);
+        labelGbc.fill = GridBagConstraints.HORIZONTAL;
+        labelGbc.weightx = 1.0; // This is what allows them to push to edges
 
-        // Add lblPanel below the main content (iconPanel and welcome label)
-        gbc.gridy = 2; // Place lblPanel below the welcome message
+// Row 0 - Primary Goal (left only)
+        labelGbc.gridx = 0;
+        labelGbc.gridy = 0;
+        labelGbc.anchor = GridBagConstraints.LINE_START;
+        lblPanel.add(lblPrimaryGoal, labelGbc);
+
+// Row 1 - Calories
+        labelGbc.gridy = 1;
+        labelGbc.gridx = 0;
+        labelGbc.anchor = GridBagConstraints.LINE_START;
+        lblPanel.add(lblCalories, labelGbc);
+        labelGbc.gridx = 1;
+        labelGbc.anchor = GridBagConstraints.LINE_END;
+        lblPanel.add(lblGoalCalories, labelGbc);
+
+// Row 2 - Carbs
+        labelGbc.gridy = 2;
+        labelGbc.gridx = 0;
+        labelGbc.anchor = GridBagConstraints.LINE_START;
+        lblPanel.add(lblCarbs, labelGbc);
+        labelGbc.gridx = 1;
+        labelGbc.anchor = GridBagConstraints.LINE_END;
+        lblPanel.add(lblGoalCarbs, labelGbc);
+
+// Row 3 - Protein
+        labelGbc.gridy = 3;
+        labelGbc.gridx = 0;
+        labelGbc.anchor = GridBagConstraints.LINE_START;
+        lblPanel.add(lblProtein, labelGbc);
+        labelGbc.gridx = 1;
+        labelGbc.anchor = GridBagConstraints.LINE_END;
+        lblPanel.add(lblGoalProtein, labelGbc);
+
+// Row 4 - Fats
+        labelGbc.gridy = 4;
+        labelGbc.gridx = 0;
+        labelGbc.anchor = GridBagConstraints.LINE_START;
+        lblPanel.add(lblFats, labelGbc);
+        labelGbc.gridx = 1;
+        labelGbc.anchor = GridBagConstraints.LINE_END;
+        lblPanel.add(lblGoalFats, labelGbc);
+
+// Add lblPanel to main layout (centered)
+        gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         panel1.add(lblPanel, gbc);
 
-        // Create and setup bot panel on the right
+// --- Move botPanel to the bottom ---
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+
         botPanel = new JPanel(new BorderLayout());
         botPanel.setBackground(Color.LIGHT_GRAY);
+
+        lblBot.setHorizontalAlignment(SwingConstants.CENTER);
+        botPanel.add(lblBot, BorderLayout.NORTH);
+
         JButton btnBotpress = new JButton(getScaledIcon("/botpress_icon.png", 200, 200));
         btnBotpress.setBorderPainted(false);
         btnBotpress.setContentAreaFilled(false);
         botPanel.add(btnBotpress, BorderLayout.CENTER);
 
-        // Add botPanel to the right side of the frame
-        gbc.gridx = 2;
-        gbc.gridwidth = 1;
         panel1.add(botPanel, gbc);
+
+        //botpress button click event
+        btnBotpress.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openPage("Bot");
+            }
+        });
 
         // Setup JFrame
         JFrame frame = new JFrame("Dashboard");
@@ -156,6 +232,18 @@ public class DashboardGUI extends JFrame {
             case "Help":
                 new HelpGUI();
                 break;
+            case "Bot": // <-- new case
+                try {
+                    Desktop.getDesktop().browse(new URI(BOTPRESS_URL));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                break;
+        }
+        //close current page
+        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+        if (topFrame != null) {
+            topFrame.dispose();
         }
     }
 

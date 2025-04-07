@@ -1,11 +1,9 @@
 package org.aimacrosapp;
-
 import org.aimacrosapp.User;
 
 public class UserGoals {
     //attributes
     private User user;
-    private String primary_goal;
     private String workouts_per_week;
     private int daily_calories;
     private int daily_carbs;
@@ -13,9 +11,8 @@ public class UserGoals {
     private int daily_fats;
 
     //necessary user goals constructor
-    public UserGoals(User user, String primary_goal, String workouts_per_week, int daily_calories, int daily_carbs, int daily_protein, int daily_fats){
+    public UserGoals(User user, String workouts_per_week, int daily_calories, int daily_carbs, int daily_protein, int daily_fats){
         this.user = user;
-        this.primary_goal = primary_goal;
         this.workouts_per_week = workouts_per_week;
         this.daily_calories = daily_calories;
         this.daily_carbs = daily_carbs;
@@ -30,14 +27,6 @@ public class UserGoals {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public String getPrimary_goal() {
-        return primary_goal;
-    }
-
-    public void setPrimary_goal(String primary_goal) {
-        this.primary_goal = primary_goal;
     }
 
     public String getWorkouts_per_week() {

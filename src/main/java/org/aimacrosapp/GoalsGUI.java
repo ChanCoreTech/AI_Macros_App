@@ -7,49 +7,58 @@ import java.awt.event.ActionListener;
 
 public class GoalsGUI extends JFrame {
     private JLabel lblDirections, lblWorkoutsPer, lblCalories, lblCarbs, lblProtein, lblFats;
-    //back arrow for every page
-    ImageIcon backIcon;
-    private JButton btnBack, btnSubmit;
+    private JLabel lblTodayWorkout, lblTodayCalories, lblTodayCarbs, lblTodayProtein, lblTodayFats;
+
+    private JButton btnBack, btnSubmit, btnUpdate;
 
     private JPanel panel1;
     private JPanel topPanel;
 
-    private JComboBox<String> comboWorkoutsPer;
+    private JComboBox<String> comboWorkoutsPer, comboTodayWorkout;
 
     private JTextField txtCalories = new JTextField(15);
     private JTextField txtCarbs = new JTextField(15);
     private JTextField txtProtein = new JTextField(15);
     private JTextField txtFats = new JTextField(15);
 
-    public GoalsGUI(){
-        //initialize elements
-        lblDirections = new JLabel("Here, you can create/edit your fitness goals! Fill in the info and click 'submit' to save it!");
+    private JTextField txtTodayCalories = new JTextField(15);
+    private JTextField txtTodayCarbs = new JTextField(15);
+    private JTextField txtTodayProtein = new JTextField(15);
+    private JTextField txtTodayFats = new JTextField(15);
+
+    public GoalsGUI() {
+        // === LABELS ===
+        lblDirections = new JLabel("Here, you can create/edit your general goals or enter today's daily macros to track your progress!");
         lblWorkoutsPer = new JLabel("Workouts per week:");
         lblCalories = new JLabel("Calories per day:");
         lblCarbs = new JLabel("Carbs per day:");
-        lblProtein = new JLabel("Protein per day: ");
-        lblFats = new JLabel("Fats per day: ");
+        lblProtein = new JLabel("Protein per day:");
+        lblFats = new JLabel("Fats per day:");
+        lblTodayWorkout = new JLabel("Did You Workout Today?:");
+        lblTodayCalories = new JLabel("Today's Calories:");
+        lblTodayCarbs = new JLabel("Today's Carbs:");
+        lblTodayProtein = new JLabel("Today's Protein:");
+        lblTodayFats = new JLabel("Today's Fats:");
         btnSubmit = new JButton("Submit");
+        btnUpdate = new JButton("Update");
 
+        // === COMBOBOX OPTIONS ===
         String[] comboOptionsWorkouts = {"", "1", "2", "3", "4", "5", "6", "7"};
-
         comboWorkoutsPer = new JComboBox<>(comboOptionsWorkouts);
+        comboTodayWorkout = new JComboBox<>(comboOptionsWorkouts);
 
         comboWorkoutsPer.setPreferredSize(new Dimension(180, 25));
+        comboTodayWorkout.setPreferredSize(new Dimension(180, 25));
 
-        //back button image logic
+        // === BACK BUTTON ===
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
         btnBack.setContentAreaFilled(false);
-
-        //back button click event
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //go back to Sign In
-                new SignInGUI();
-                //close current page
+                new DashboardGUI();
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                 if (topFrame != null) {
                     topFrame.dispose();
@@ -57,148 +66,203 @@ public class GoalsGUI extends JFrame {
             }
         });
 
-        //submit entries click event; first accepts or declines security questions and then accepts or declines new password
+        // === SUBMIT LOGIC ===
         btnSubmit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //Account Logic object
                 GoalsLogic goalsLogic = new GoalsLogic();
 
-                //text values
                 String workouts_per = (String) comboWorkoutsPer.getSelectedItem();
                 String calories = txtCalories.getText();
                 String carbs = txtCarbs.getText();
                 String protein = txtProtein.getText();
                 String fats = txtFats.getText();
 
-                //GOALS LOGIC HERE
+                // Insert goalsLogic.setGoals(...) or similar method calls here
 
-                int option = JOptionPane.showOptionDialog(
-                        panel1,
-                        "Your goals have been updated! Thanks!",
-                        "Message",
-                        JOptionPane.DEFAULT_OPTION,
-                        JOptionPane.INFORMATION_MESSAGE,
-                        null,
-                        new Object[]{"OK"},
-                        "OK"
-                );
-
-                if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
-
-                }
+                JOptionPane.showMessageDialog(panel1, "Your goals have been updated! Thanks!");
             }
         });
 
-        //resize all elements
-        //Font headerFont = new Font("Helvetica", Font.BOLD, 20);
-        Font headerFont = new Font("Helvetica", Font.BOLD, 15);
+        // === UPDATE LOGIC ===
+        btnSubmit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GoalsLogic goalsLogic = new GoalsLogic();
+
+                String today_workout = (String) comboTodayWorkout.getSelectedItem();
+                String todayCalories = txtTodayCalories.getText();
+                String todayCarbs = txtTodayCarbs.getText();
+                String todayProtein = txtTodayProtein.getText();
+                String todayFats = txtTodayFats.getText();
+
+                // Insert goalsLogic(...) or similar method calls here
+
+                JOptionPane.showMessageDialog(panel1, "Your daily goal progress has been updated! Thanks!");
+            }
+        });
+
+        // === FONT STYLES ===
+        Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
+
         lblDirections.setFont(headerFont);
         lblWorkoutsPer.setFont(mainFont);
         lblCalories.setFont(mainFont);
         lblCarbs.setFont(mainFont);
         lblProtein.setFont(mainFont);
         lblFats.setFont(mainFont);
-
+        lblTodayWorkout.setFont(mainFont);
+        lblTodayCalories.setFont(mainFont);
+        lblTodayCarbs.setFont(mainFont);
+        lblTodayProtein.setFont(mainFont);
+        lblTodayFats.setFont(mainFont);
         btnSubmit.setFont(boldFont);
+        btnUpdate.setFont(boldFont);
 
         comboWorkoutsPer.setFont(mainFont);
+        comboTodayWorkout.setFont(mainFont);
+
         txtCalories.setFont(mainFont);
         txtCarbs.setFont(mainFont);
         txtProtein.setFont(mainFont);
         txtFats.setFont(mainFont);
+        txtTodayCalories.setFont(mainFont);
+        txtTodayCarbs.setFont(mainFont);
+        txtTodayProtein.setFont(mainFont);
+        txtTodayFats.setFont(mainFont);
 
-        // Top panel with null layout for the back button
-        topPanel = new JPanel(null); // Null layout
+        // === TOP PANEL (Back Button) ===
+        topPanel = new JPanel(null);
         topPanel.setBackground(Color.WHITE);
-        topPanel.setPreferredSize(new Dimension(60, 60)); // Fixed height
-        btnBack.setBounds(10, 10, 50, 50); // Positioning manually
+        topPanel.setPreferredSize(new Dimension(60, 60));
+        btnBack.setBounds(10, 10, 50, 50);
         topPanel.add(btnBack);
 
-        // Set up panel
+        // === MAIN GOALS PANEL ===
         panel1 = new JPanel(new GridBagLayout());
         panel1.setBackground(Color.LIGHT_GRAY);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        GridBagConstraints gbc1 = new GridBagConstraints();
+        gbc1.insets = new Insets(10, 10, 10, 10);
+        gbc1.fill = GridBagConstraints.HORIZONTAL;
 
-        // Directions label
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        panel1.add(lblDirections, gbc);
+        int y = 0;
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        gbc1.gridwidth = 2;
+        gbc1.anchor = GridBagConstraints.CENTER;
+        JLabel lblGoalsHeader = new JLabel("Create or Edit Your Goals!");
+        lblGoalsHeader.setFont(headerFont);
+        panel1.add(lblGoalsHeader, gbc1);
 
-        // Reset gridwidth for other components
-        gbc.gridwidth = 1;
+        gbc1.gridwidth = 1;
+        gbc1.anchor = GridBagConstraints.WEST;
 
-        // Email label and text field
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel1.add(lblWorkoutsPer, gbc);
+        gbc1.gridy = y++;
+        panel1.add(lblWorkoutsPer, gbc1);
+        gbc1.gridx = 1;
+        panel1.add(comboWorkoutsPer, gbc1);
 
-        gbc.gridx = 1;
-        comboWorkoutsPer.setPreferredSize(new Dimension(200, 30));
-        panel1.add(comboWorkoutsPer, gbc);
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        panel1.add(lblCalories, gbc1);
+        gbc1.gridx = 1;
+        panel1.add(txtCalories, gbc1);
 
-        // Nickname label and text field
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel1.add(lblCalories, gbc);
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        panel1.add(lblCarbs, gbc1);
+        gbc1.gridx = 1;
+        panel1.add(txtCarbs, gbc1);
 
-        gbc.gridx = 1;
-        txtCalories.setPreferredSize(new Dimension(200, 30));
-        panel1.add(txtCalories, gbc);
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        panel1.add(lblProtein, gbc1);
+        gbc1.gridx = 1;
+        panel1.add(txtProtein, gbc1);
 
-        // Password label and text field
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel1.add(lblCarbs, gbc);
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        panel1.add(lblFats, gbc1);
+        gbc1.gridx = 1;
+        panel1.add(txtFats, gbc1);
 
-        gbc.gridx = 1;
-        txtCarbs.setPreferredSize(new Dimension(200, 30));
-        panel1.add(txtCarbs, gbc);
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        gbc1.gridwidth = 2;
+        gbc1.anchor = GridBagConstraints.CENTER;
+        panel1.add(btnSubmit, gbc1);
 
-        // Confirm Password label and text field
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel1.add(lblProtein, gbc);
+        // === TODAY'S STATS PANEL ===
+        JPanel panel2 = new JPanel(new GridBagLayout());
+        panel2.setBackground(Color.LIGHT_GRAY);
+        GridBagConstraints gbc2 = new GridBagConstraints();
+        gbc2.insets = new Insets(10, 10, 10, 10);
+        gbc2.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 1;
-        txtProtein.setPreferredSize(new Dimension(200, 30));
-        panel1.add(txtProtein, gbc);
+        y = 0;
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        gbc2.gridwidth = 2;
+        gbc2.anchor = GridBagConstraints.CENTER;
+        JLabel lblTodayHeader = new JLabel("Log Today's Goal Progress!");
+        lblTodayHeader.setFont(headerFont);
+        panel2.add(lblTodayHeader, gbc2);
 
-        // Confirm Password label and text field
-        gbc.gridx = 0;
-        gbc.gridy++;
-        panel1.add(lblFats, gbc);
+        gbc2.gridwidth = 1;
+        gbc2.anchor = GridBagConstraints.WEST;
 
-        gbc.gridx = 1;
-        txtFats.setPreferredSize(new Dimension(200, 30));
-        panel1.add(txtFats, gbc);
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayWorkout, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(comboTodayWorkout, gbc2);
 
-        // Submit Button
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.fill = GridBagConstraints.NONE;
-        panel1.add(btnSubmit, gbc);
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayCalories, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(txtTodayCalories, gbc2);
 
-        // Setup JFrame
-        JFrame frame = new JFrame("Forgot Password");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1500, 1000);
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        frame.setResizable(true);
-        frame.setLocationRelativeTo(null);
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayCarbs, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(txtTodayCarbs, gbc2);
 
-        // Set layout to BorderLayout and add components
-        frame.setLayout(new BorderLayout());
-        frame.add(topPanel, BorderLayout.NORTH);
-        frame.add(panel1, BorderLayout.CENTER);
-        frame.setVisible(true);
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayProtein, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(txtTodayProtein, gbc2);
+
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayFats, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(txtTodayFats, gbc2);
+
+        gbc1.gridx = 0;
+        gbc1.gridy = y++;
+        gbc1.gridwidth = 2;
+        gbc1.anchor = GridBagConstraints.CENTER;
+        panel2.add(btnUpdate, gbc1);
+
+        // === CONTENT PANEL (Holds both panels side by side) ===
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2));
+        contentPanel.add(panel1);
+        contentPanel.add(panel2);
+
+        // === FRAME SETTINGS ===
+        setTitle("Goals");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setResizable(true);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+        add(topPanel, BorderLayout.NORTH);
+        add(contentPanel, BorderLayout.CENTER);
+        setVisible(true);
     }
 }
