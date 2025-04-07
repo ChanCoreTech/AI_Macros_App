@@ -1,3 +1,5 @@
+package org.aimacrosapp;
+
 import org.aimacrosapp.User;
 
 public class UserGoals {

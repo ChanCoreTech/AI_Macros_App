@@ -4,12 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
+import java.awt.image.BufferedImage;
 
 public class DashboardGUI extends JFrame {
     private JButton btnBack;
     private JPanel panel1;
+    private JPanel lblPanel;
+    private JPanel botPanel;
     private JPanel topPanel;
+    private JLabel lblPrimaryGoal, lblCalories, lblCarbs, lblProtein, lblFats;
 
     public DashboardGUI() {
         // Back button
@@ -17,6 +20,12 @@ public class DashboardGUI extends JFrame {
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
         btnBack.setContentAreaFilled(false);
+
+        lblPrimaryGoal = new JLabel("Primary Goal: ");
+        lblCalories = new JLabel("Today's Calories: ");
+        lblCarbs = new JLabel("Today's Carbs: ");
+        lblProtein = new JLabel("Today's Protein: ");
+        lblFats = new JLabel("Today's Fats: ");
 
         btnBack.addActionListener(new ActionListener() {
             @Override
@@ -48,12 +57,6 @@ public class DashboardGUI extends JFrame {
         JPanel iconPanel = new JPanel(new GridLayout(1, 4, 20, 0)); // 4 icons in a row
         iconPanel.setBackground(Color.LIGHT_GRAY);
 
-        // Create a black container panel for the icons
-//        JPanel iconContainer = new JPanel();
-//        iconContainer.setBackground(Color.BLACK);
-//        iconContainer.setLayout(new GridLayout(1, 4, 10, 10)); // 1 row, 4 columns, spacing
-//        iconContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding
-
         // Icons for Account, SetGoals, GoalHistory, Help
         String[] iconPaths = {"/account.png", "/goals.png", "/goal_history.png", "/help.png"};
         String[] pageNames = {"Account", "SetGoals", "GoalHistory", "Help"};
@@ -76,42 +79,9 @@ public class DashboardGUI extends JFrame {
             iconPanel.add(btn);
         }
 
-        // Add the icon container to the main panel
-//        gbc.gridx = 0;
-//        gbc.gridy = 0;
-//        gbc.gridwidth = 2;
-//        panel1.add(iconContainer, gbc);
-
-        // Welcome label
-        //resize all elements
-        Font headerFont = new Font("Helvetica", Font.BOLD, 20);
-        Font mainFont = new Font("Verdana", Font.PLAIN, 15);
-        Font boldFont = new Font("Verdana", Font.BOLD, 15);
-        JLabel lblWelcome = new JLabel("Welcome!", SwingConstants.CENTER);
-        lblWelcome.setFont(headerFont);
-
-        // Botpress chatbot image link (Right side)
-        ImageIcon botpressIcon = getScaledIcon("/botpress_icon.png", 100, 100);
-        JButton btnBotpress = new JButton(botpressIcon);
-        btnBotpress.setBorderPainted(false);
-        btnBotpress.setContentAreaFilled(false);
-
-        btnBotpress.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                BotLogic botLogic = new BotLogic();
-                botLogic.linkToBot();
-            }
-        });
-
-        // Left side labels for Goal Progress
-        JPanel goalPanel = new JPanel(new GridLayout(5, 1, 5, 5));
-        goalPanel.setBackground(Color.LIGHT_GRAY);
-        goalPanel.add(new JLabel("Today's Goal Progress:", SwingConstants.LEFT));
-        goalPanel.add(new JLabel("Today's Calories: "));
-        goalPanel.add(new JLabel("Today's Carbs: "));
-        goalPanel.add(new JLabel("Today's Protein: "));
-        goalPanel.add(new JLabel("Today's Fats: "));
+        // Create the label panel to hold the goal progress labels
+        lblPanel = new JPanel(new GridBagLayout());
+        lblPanel.setBackground(Color.LIGHT_GRAY);
 
         // GridBag Constraints for Layout
         gbc.gridx = 0;
@@ -121,16 +91,41 @@ public class DashboardGUI extends JFrame {
 
         gbc.gridy = 1;
         gbc.gridwidth = 2;
+        JLabel lblWelcome = new JLabel("This is your personal dashboard. Click the displayed icons to explore!", SwingConstants.CENTER);
+        lblWelcome.setFont(new Font("Helvetica", Font.BOLD, 20));
         panel1.add(lblWelcome, gbc);
 
-        gbc.gridy = 2;
+        // Now add labels to lblPanel
         gbc.gridx = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel1.add(goalPanel, gbc);
+        gbc.gridy = 0;
+        lblPanel.add(lblPrimaryGoal, gbc);
+        gbc.gridy = 1;
+        lblPanel.add(lblCalories, gbc);
+        gbc.gridy = 2;
+        lblPanel.add(lblCarbs, gbc);
+        gbc.gridy = 3;
+        lblPanel.add(lblProtein, gbc);
+        gbc.gridy = 4;
+        lblPanel.add(lblFats, gbc);
 
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel1.add(btnBotpress, gbc);
+        // Add lblPanel below the main content (iconPanel and welcome label)
+        gbc.gridy = 2; // Place lblPanel below the welcome message
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        panel1.add(lblPanel, gbc);
+
+        // Create and setup bot panel on the right
+        botPanel = new JPanel(new BorderLayout());
+        botPanel.setBackground(Color.LIGHT_GRAY);
+        JButton btnBotpress = new JButton(getScaledIcon("/botpress_icon.png", 200, 200));
+        btnBotpress.setBorderPainted(false);
+        btnBotpress.setContentAreaFilled(false);
+        botPanel.add(btnBotpress, BorderLayout.CENTER);
+
+        // Add botPanel to the right side of the frame
+        gbc.gridx = 2;
+        gbc.gridwidth = 1;
+        panel1.add(botPanel, gbc);
 
         // Setup JFrame
         JFrame frame = new JFrame("Dashboard");
@@ -163,11 +158,24 @@ public class DashboardGUI extends JFrame {
                 break;
         }
     }
-    private ImageIcon getScaledIcon(String path, int width, int height) {
-        ImageIcon icon = new ImageIcon(getClass().getResource(path));
-        Image img = icon.getImage();
-        Image resizedImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        return new ImageIcon(resizedImg);
-    }
 
+    private ImageIcon getScaledIcon(String path, int width, int height) {
+        try {
+            ImageIcon originalIcon = new ImageIcon(getClass().getResource(path));
+            Image originalImage = originalIcon.getImage();
+
+            BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2d = scaledImage.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.drawImage(originalImage, 0, 0, width, height, null);
+            g2d.dispose();
+
+            return new ImageIcon(scaledImage);
+        } catch (Exception e) {
+            System.err.println("Failed to load or scale image: " + path);
+            return null;
+        }
+    }
 }
