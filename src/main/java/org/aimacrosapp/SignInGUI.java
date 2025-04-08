@@ -80,6 +80,8 @@ public class SignInGUI extends JFrame{
 
                 // Proceed only if authentication is successful
                 if (isAuthenticated) {
+                    //static Session class used to get email, identifying user
+                    Session.setEmail(email);
                     int option = JOptionPane.showOptionDialog(
                             panel1,
                             "Login successful!",

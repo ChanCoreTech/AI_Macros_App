@@ -129,13 +129,13 @@ public class DashboardGUI extends JFrame {
         labelGbc.fill = GridBagConstraints.HORIZONTAL;
         labelGbc.weightx = 1.0; // This is what allows them to push to edges
 
-// Row 0 - Primary Goal (left only)
+        // Primary Goal
         labelGbc.gridx = 0;
         labelGbc.gridy = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
         lblPanel.add(lblPrimaryGoal, labelGbc);
 
-// Row 1 - Calories
+        // Calories
         labelGbc.gridy = 1;
         labelGbc.gridx = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
@@ -144,7 +144,7 @@ public class DashboardGUI extends JFrame {
         labelGbc.anchor = GridBagConstraints.LINE_END;
         lblPanel.add(lblGoalCalories, labelGbc);
 
-// Row 2 - Carbs
+        // Carbs
         labelGbc.gridy = 2;
         labelGbc.gridx = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
@@ -153,7 +153,7 @@ public class DashboardGUI extends JFrame {
         labelGbc.anchor = GridBagConstraints.LINE_END;
         lblPanel.add(lblGoalCarbs, labelGbc);
 
-// Row 3 - Protein
+        // Protein
         labelGbc.gridy = 3;
         labelGbc.gridx = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
@@ -162,7 +162,7 @@ public class DashboardGUI extends JFrame {
         labelGbc.anchor = GridBagConstraints.LINE_END;
         lblPanel.add(lblGoalProtein, labelGbc);
 
-// Row 4 - Fats
+        // Fats
         labelGbc.gridy = 4;
         labelGbc.gridx = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
@@ -171,13 +171,13 @@ public class DashboardGUI extends JFrame {
         labelGbc.anchor = GridBagConstraints.LINE_END;
         lblPanel.add(lblGoalFats, labelGbc);
 
-// Add lblPanel to main layout (centered)
+        // Add lblPanel to main layout (centered)
         gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         panel1.add(lblPanel, gbc);
 
-// --- Move botPanel to the bottom ---
+        // BotPanel at bottom
         gbc.gridy = 3;
         gbc.gridx = 0;
         gbc.gridwidth = 2;

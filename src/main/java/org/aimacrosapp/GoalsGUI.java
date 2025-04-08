@@ -1,13 +1,13 @@
 package org.aimacrosapp;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class GoalsGUI extends JFrame {
     private JLabel lblDirections, lblWorkoutsPer, lblCalories, lblCarbs, lblProtein, lblFats;
-    private JLabel lblTodayWorkout, lblTodayCalories, lblTodayCarbs, lblTodayProtein, lblTodayFats;
+    private JLabel lblTodayWorkout, lblTodayCalories, lblTodayCarbs, lblTodayProtein, lblTodayFats, lblTodayDate;
 
     private JButton btnBack, btnSubmit, btnUpdate;
 
@@ -21,6 +21,7 @@ public class GoalsGUI extends JFrame {
     private JTextField txtProtein = new JTextField(15);
     private JTextField txtFats = new JTextField(15);
 
+    private JTextField txtTodayDate = new JTextField(15);
     private JTextField txtTodayCalories = new JTextField(15);
     private JTextField txtTodayCarbs = new JTextField(15);
     private JTextField txtTodayProtein = new JTextField(15);
@@ -34,6 +35,7 @@ public class GoalsGUI extends JFrame {
         lblCarbs = new JLabel("Carbs per day:");
         lblProtein = new JLabel("Protein per day:");
         lblFats = new JLabel("Fats per day:");
+        lblTodayDate = new JLabel("Today's Date:");
         lblTodayWorkout = new JLabel("Did You Workout Today?:");
         lblTodayCalories = new JLabel("Today's Calories:");
         lblTodayCarbs = new JLabel("Today's Carbs:");
@@ -42,15 +44,14 @@ public class GoalsGUI extends JFrame {
         btnSubmit = new JButton("Submit");
         btnUpdate = new JButton("Update");
 
-        // === COMBOBOX OPTIONS ===
         String[] comboOptionsWorkouts = {"", "1", "2", "3", "4", "5", "6", "7"};
+        String[] comboOptionsTodayWorkout = {"", "true", "false"};
         comboWorkoutsPer = new JComboBox<>(comboOptionsWorkouts);
-        comboTodayWorkout = new JComboBox<>(comboOptionsWorkouts);
+        comboTodayWorkout = new JComboBox<>(comboOptionsTodayWorkout);
 
         comboWorkoutsPer.setPreferredSize(new Dimension(180, 25));
         comboTodayWorkout.setPreferredSize(new Dimension(180, 25));
 
-        // === BACK BUTTON ===
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
@@ -66,7 +67,6 @@ public class GoalsGUI extends JFrame {
             }
         });
 
-        // === SUBMIT LOGIC ===
         btnSubmit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -78,31 +78,47 @@ public class GoalsGUI extends JFrame {
                 String protein = txtProtein.getText();
                 String fats = txtFats.getText();
 
-                // Insert goalsLogic.setGoals(...) or similar method calls here
+                String email = Session.getEmail();
+                System.out.println("Inserting goals for user with email address: " + email);
+                try {
+                    //call method to insert or update goals for user
+                    goalsLogic.upsertGoals(workouts_per, calories, carbs, protein, fats, email);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
 
                 JOptionPane.showMessageDialog(panel1, "Your goals have been updated! Thanks!");
             }
         });
 
-        // === UPDATE LOGIC ===
-        btnSubmit.addActionListener(new ActionListener() {
+        btnUpdate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 GoalsLogic goalsLogic = new GoalsLogic();
 
+                String today_date = txtTodayDate.getText();
                 String today_workout = (String) comboTodayWorkout.getSelectedItem();
                 String todayCalories = txtTodayCalories.getText();
                 String todayCarbs = txtTodayCarbs.getText();
                 String todayProtein = txtTodayProtein.getText();
                 String todayFats = txtTodayFats.getText();
 
-                // Insert goalsLogic(...) or similar method calls here
+                //get email of current user
+                String email = Session.getEmail();
+                System.out.println("Inserting goal history for user with email address: " + email);
+                try {
+                    //call method to insert new day goals
+                    goalsLogic.createGoalHistory(today_date, today_workout, todayCalories, todayCarbs, todayProtein, todayFats, email);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
 
                 JOptionPane.showMessageDialog(panel1, "Your daily goal progress has been updated! Thanks!");
             }
         });
 
-        // === FONT STYLES ===
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
@@ -113,6 +129,7 @@ public class GoalsGUI extends JFrame {
         lblCarbs.setFont(mainFont);
         lblProtein.setFont(mainFont);
         lblFats.setFont(mainFont);
+        lblTodayDate.setFont(mainFont);
         lblTodayWorkout.setFont(mainFont);
         lblTodayCalories.setFont(mainFont);
         lblTodayCarbs.setFont(mainFont);
@@ -128,19 +145,20 @@ public class GoalsGUI extends JFrame {
         txtCarbs.setFont(mainFont);
         txtProtein.setFont(mainFont);
         txtFats.setFont(mainFont);
+        txtTodayDate.setFont(mainFont);
         txtTodayCalories.setFont(mainFont);
         txtTodayCarbs.setFont(mainFont);
         txtTodayProtein.setFont(mainFont);
         txtTodayFats.setFont(mainFont);
 
-        // === TOP PANEL (Back Button) ===
+        // TOP PANEL (Back Button)
         topPanel = new JPanel(null);
         topPanel.setBackground(Color.WHITE);
         topPanel.setPreferredSize(new Dimension(60, 60));
         btnBack.setBounds(10, 10, 50, 50);
         topPanel.add(btnBack);
 
-        // === MAIN GOALS PANEL ===
+        // MAIN GOALS PANEL
         panel1 = new JPanel(new GridBagLayout());
         panel1.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc1 = new GridBagConstraints();
@@ -194,7 +212,7 @@ public class GoalsGUI extends JFrame {
         gbc1.anchor = GridBagConstraints.CENTER;
         panel1.add(btnSubmit, gbc1);
 
-        // === TODAY'S STATS PANEL ===
+        // TODAY'S STATS PANEL
         JPanel panel2 = new JPanel(new GridBagLayout());
         panel2.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc2 = new GridBagConstraints();
@@ -212,6 +230,12 @@ public class GoalsGUI extends JFrame {
 
         gbc2.gridwidth = 1;
         gbc2.anchor = GridBagConstraints.WEST;
+
+        gbc2.gridx = 0;
+        gbc2.gridy = y++;
+        panel2.add(lblTodayDate, gbc2);
+        gbc2.gridx = 1;
+        panel2.add(txtTodayDate, gbc2);
 
         gbc2.gridx = 0;
         gbc2.gridy = y++;
@@ -249,12 +273,12 @@ public class GoalsGUI extends JFrame {
         gbc1.anchor = GridBagConstraints.CENTER;
         panel2.add(btnUpdate, gbc1);
 
-        // === CONTENT PANEL (Holds both panels side by side) ===
+        // CONTENT PANEL
         JPanel contentPanel = new JPanel(new GridLayout(1, 2));
         contentPanel.add(panel1);
         contentPanel.add(panel2);
 
-        // === FRAME SETTINGS ===
+        // FRAME SETTINGS
         setTitle("Goals");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
