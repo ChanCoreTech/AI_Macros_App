@@ -80,25 +80,40 @@ public class SignInGUI extends JFrame{
 
                 // Proceed only if authentication is successful
                 if (isAuthenticated) {
+                    //create User Account
+                    UserAccount userAccount = new UserAccount();
                     //static Session class used to get email, identifying user
                     Session.setEmail(email);
-                    int option = JOptionPane.showOptionDialog(
-                            panel1,
-                            "Login successful!",
-                            "Message",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            new Object[]{"OK"},
-                            "OK"
-                    );
+                    try {
+                        //get user information from user and user_account
+                        userAccount = accountLogic.getUserAndAccountByEmail(email);
+                        if(userAccount != null) {
+                            //set User object in session
+                            Session.setCurrentUser(userAccount.getUser());
+                            int option = JOptionPane.showOptionDialog(
+                                    panel1,
+                                    "Login successful!",
+                                    "Message",
+                                    JOptionPane.DEFAULT_OPTION,
+                                    JOptionPane.INFORMATION_MESSAGE,
+                                    null,
+                                    new Object[]{"OK"},
+                                    "OK"
+                            );
 
-                    if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
-                        new DashboardGUI();
-                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-                        if (topFrame != null) {
-                            topFrame.dispose();
+                            if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
+                                new DashboardGUI();
+                                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                                if (topFrame != null) {
+                                    topFrame.dispose();
+                                }
+                            }
                         }
+                        else{
+                            JOptionPane.showMessageDialog(panel1, "User not found.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
                     }
                 } else {
                     JOptionPane.showMessageDialog(panel1, "Invalid email or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);

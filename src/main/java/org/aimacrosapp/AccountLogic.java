@@ -454,6 +454,90 @@ public class AccountLogic {
             return false;
         }
     }
+
+    //setup connection to database for getUserAccountByEmail
+    private HttpURLConnection setupConnection(String endpoint, String method) throws IOException {
+        URL url = new URL(DB_URL + endpoint);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("apikey", DB_KEY);
+        conn.setDoOutput(true); // optional for GET
+        return conn;
+    }
+
+    //get user account for session
+    public UserAccount getUserAndAccountByEmail(String email) throws IOException {
+        // Step 1: Fetch user_account row by email
+        String endpoint = "/rest/v1/user_account?email=eq." + email + "&select=*";
+        HttpURLConnection conn = setupConnection(endpoint, "GET");
+
+        int responseCode = conn.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (Scanner scanner = new Scanner(conn.getInputStream())) {
+                StringBuilder jsonResponse = new StringBuilder();
+                while (scanner.hasNext()) {
+                    jsonResponse.append(scanner.nextLine());
+                }
+
+                JSONArray jsonArray = new JSONArray(jsonResponse.toString());
+                if (jsonArray.length() > 0) {
+                    JSONObject accountObj = jsonArray.getJSONObject(0);
+
+                    // Step 2: Parse user_account fields
+                    UserAccount account = new UserAccount();
+                    account.setEmail(accountObj.getString("email"));
+                    account.setPassword(accountObj.getString("password"));
+                    account.setNickname(accountObj.optString("nickname", null));
+                    account.setPhone_number(accountObj.optString("phone_number", null));
+                    account.setEmail_second(accountObj.optString("email_second", null));
+
+                    String userId = accountObj.getString("user_id");
+
+                    // Step 3: Fetch corresponding user row
+                    String userEndpoint = "/rest/v1/user?user_id=eq." + userId + "&select=*";
+                    HttpURLConnection userConn = setupConnection(userEndpoint, "GET");
+
+                    int userResponseCode = userConn.getResponseCode();
+                    if (userResponseCode == HttpURLConnection.HTTP_OK) {
+                        try (Scanner userScanner = new Scanner(userConn.getInputStream())) {
+                            StringBuilder userJson = new StringBuilder();
+                            while (userScanner.hasNext()) {
+                                userJson.append(userScanner.nextLine());
+                            }
+
+                            JSONArray userArray = new JSONArray(userJson.toString());
+                            if (userArray.length() > 0) {
+                                JSONObject userObj = userArray.getJSONObject(0);
+                                User user = new User();
+                                user.setFirst_name(userObj.optString("first_name"));
+                                user.setLast_name(userObj.optString("last_name"));
+                                user.setBirth_date(userObj.optString("birth_date"));
+                                user.setGender(userObj.optString("gender"));
+                                user.setHeight_feet(userObj.optInt("height_feet"));
+                                user.setHeight_inches(userObj.optInt("height_inches"));
+                                user.setWeight_lbs(userObj.optInt("weight_lbs"));
+                                user.setBody_type(userObj.optString("body_type", null));
+                                user.setExperience_level(userObj.optString("experience_level", null));
+                                user.setActivity_level(userObj.optString("activity_level", null));
+                                user.setPrimary_goal(userObj.optString("primary_goal", null));
+
+                                // Step 4: Attach user to account
+                                account.setUser(user);
+                            }
+                        }
+                    }
+
+                    return account;
+                }
+            }
+        }
+
+        System.out.println("Failed to retrieve UserAccount info for: " + email);
+        return null;
+    }
+
+
     // Method to reset password after verification
 //    public void updatePassword(String email, String password, String confirmPassword) {
 //

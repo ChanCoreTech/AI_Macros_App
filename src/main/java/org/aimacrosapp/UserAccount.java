@@ -9,6 +9,11 @@ public class UserAccount {
     //optional attributes
     private String email_second;
 
+    //empty
+    public UserAccount() {
+
+    }
+
     //necessary user account constructor
     public UserAccount(User user, String email, String password, String nickname, String phone_number){
         this.user = user;
@@ -26,6 +31,7 @@ public class UserAccount {
         this.phone_number = phone_number;
         this.email_second = email_second;
     }
+
     //setters and getters
     public User getUser() {
         return user;
