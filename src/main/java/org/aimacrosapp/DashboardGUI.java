@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.net.URI;
 
 public class DashboardGUI extends JFrame {
@@ -22,6 +23,7 @@ public class DashboardGUI extends JFrame {
     private JLabel lblPrimaryGoal, lblCalories, lblCarbs, lblProtein, lblFats, lblGoalCalories, lblGoalCarbs, lblGoalProtein, lblGoalFats, lblBot;
 
     public DashboardGUI() {
+
         // Back button
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
@@ -199,7 +201,11 @@ public class DashboardGUI extends JFrame {
         btnBotpress.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                openPage("Bot");
+                try {
+                    Desktop.getDesktop().browse(new URI(BOTPRESS_URL));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
         });
 
@@ -232,14 +238,8 @@ public class DashboardGUI extends JFrame {
             case "Help":
                 new HelpGUI();
                 break;
-            case "Bot": // <-- new case
-                try {
-                    Desktop.getDesktop().browse(new URI(BOTPRESS_URL));
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                break;
         }
+
         //close current page
         JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
         if (topFrame != null) {
