@@ -9,6 +9,9 @@ public class UserAccount {
     //optional attributes
     private String email_second;
 
+    //user id not for constructor but for AccountLogic methods
+    private String user_id;
+
     //empty
     public UserAccount() {
 
@@ -79,5 +82,14 @@ public class UserAccount {
 
     public void setEmail_second(String email_second) {
         this.email_second = email_second;
+    }
+
+    //getter and setters for user id
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 }

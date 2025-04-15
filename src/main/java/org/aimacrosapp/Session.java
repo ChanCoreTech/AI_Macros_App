@@ -5,6 +5,8 @@ public class Session {
 
     private static User currentUser;
     private static UserAccount currentUserAccount;
+    private static UserGoals currentUserGoals;
+    private static UserGoalHistory currentUserGoalHistory;
 
     public static void setCurrentUser(User user) {
         currentUser = user;
@@ -22,6 +24,22 @@ public class Session {
         return currentUserAccount;
     }
 
+    public static UserGoals getCurrentUserGoals() {
+        return currentUserGoals;
+    }
+
+    public static void setCurrentUserGoals(UserGoals currentUserGoals) {
+        Session.currentUserGoals = currentUserGoals;
+    }
+
+    public static UserGoalHistory getCurrentUserGoalHistory() {
+        return currentUserGoalHistory;
+    }
+
+    public static void setCurrentUserGoalHistory(UserGoalHistory currentUserGoalHistory) {
+        Session.currentUserGoalHistory = currentUserGoalHistory;
+    }
+
     public static void setEmail(String userEmail) {
         email = userEmail;
     }
@@ -32,5 +50,9 @@ public class Session {
 
     public static void clear() {
         email = null;
+        currentUser = null;
+        currentUserAccount = null;
+        currentUserGoals = null;
+        currentUserGoalHistory = null;
     }
 }

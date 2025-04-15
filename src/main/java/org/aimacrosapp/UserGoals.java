@@ -10,6 +10,10 @@ public class UserGoals {
     private int daily_protein;
     private int daily_fats;
 
+    UserGoals(){
+
+    }
+
     //necessary user goals constructor
     public UserGoals(User user, String workouts_per_week, int daily_calories, int daily_carbs, int daily_protein, int daily_fats){
         this.user = user;

@@ -76,6 +76,7 @@ public class SignInGUI extends JFrame{
                 String password = new String(txtPassword.getText()); // Assuming txtPassword is your JPasswordField
 
                 AccountLogic accountLogic = new AccountLogic();
+                GoalsLogic goalsLogic = new GoalsLogic();
                 boolean isAuthenticated = accountLogic.signIn(email, password);
 
                 // Proceed only if authentication is successful
@@ -87,9 +88,21 @@ public class SignInGUI extends JFrame{
                     try {
                         //get user information from user and user_account
                         userAccount = accountLogic.getUserAndAccountByEmail(email);
-                        if(userAccount != null) {
+                        //get user
+                        User user = userAccount.getUser();
+//                        if(user != null) {
+                            //set email
+                            Session.setEmail(email);
+                            //set user
+                            Session.setCurrentUser(user);
                             //set User object in session
-                            Session.setCurrentUser(userAccount.getUser());
+                            Session.setCurrentUserAccount(userAccount);
+                            // Now fetch goals and history by user_id
+//                            UserGoals userGoals = goalsLogic.getUserGoalsByUserId(user.getUserId());
+//                            Session.setCurrentUserGoals(userGoals);
+//
+//                            UserGoalHistory userGoalHistory = accountLogic.getUserGoalHistoryByUserId(user.getUserId());
+//                            Session.setCurrentUserGoalHistory(userGoalHistory);
                             int option = JOptionPane.showOptionDialog(
                                     panel1,
                                     "Login successful!",
@@ -108,7 +121,7 @@ public class SignInGUI extends JFrame{
                                     topFrame.dispose();
                                 }
                             }
-                        }
+                        //}
                         else{
                             JOptionPane.showMessageDialog(panel1, "User not found.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                         }

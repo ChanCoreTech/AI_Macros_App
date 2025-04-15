@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class GoalsGUI extends JFrame {
     private JLabel lblDirections, lblWorkoutsPer, lblCalories, lblCarbs, lblProtein, lblFats;
@@ -27,7 +29,11 @@ public class GoalsGUI extends JFrame {
     private JTextField txtTodayProtein = new JTextField(15);
     private JTextField txtTodayFats = new JTextField(15);
 
-    public GoalsGUI() {
+    public GoalsGUI() throws IOException {
+        // Get the current local date in ISO format
+        LocalDate today = LocalDate.now();
+        String todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE);
+
         // === LABELS ===
         lblDirections = new JLabel("Here, you can create/edit your general goals or enter today's daily macros to track your progress!");
         lblWorkoutsPer = new JLabel("Workouts per week:");
@@ -51,6 +57,55 @@ public class GoalsGUI extends JFrame {
 
         comboWorkoutsPer.setPreferredSize(new Dimension(180, 25));
         comboTodayWorkout.setPreferredSize(new Dimension(180, 25));
+
+        // Fetch goal data using the session email
+        String email = Session.getEmail();
+        GoalsLogic logic = new GoalsLogic();
+        UserGoalData goalData = logic.getUserGoalsAndHistoryByEmail(email);
+
+        if (goalData != null) {
+            // Set goal data to goal labels
+            UserGoals goals = goalData.getUserGoals();
+            if (goals != null) {
+                comboWorkoutsPer.setSelectedItem(goals.getWorkouts_per_week());
+                txtCalories.setText(String.valueOf(goals.getDaily_calories()));
+                txtCarbs.setText(String.valueOf(goals.getDaily_carbs()));
+                txtProtein.setText(String.valueOf(goals.getDaily_protein()));
+                txtFats.setText(String.valueOf(goals.getDaily_fats()));
+            } else {
+                comboWorkoutsPer.setSelectedItem("");
+                txtCalories.setText("");
+                txtCarbs.setText("");
+                txtProtein.setText("");
+                txtFats.setText("");
+            }
+
+            // Look for today's history in the list
+            java.util.List<UserGoalHistory> historyList = goalData.getHistory();
+            UserGoalHistory todayHistory = null;
+            for (UserGoalHistory history : historyList) {
+                if (history.getGoal_date() != null && history.getGoal_date().equals(todayStr)) {
+                    todayHistory = history;
+                    break;
+                }
+            }
+
+            if (todayHistory != null) {
+                txtTodayDate.setText(todayStr);
+                comboTodayWorkout.setSelectedItem(String.valueOf(todayHistory.isTodays_workout()));
+                txtTodayCalories.setText(String.valueOf(todayHistory.getTodays_calories()));
+                txtTodayCarbs.setText(String.valueOf(todayHistory.getTodays_carbs()));
+                txtTodayProtein.setText(String.valueOf(todayHistory.getTodays_protein()));
+                txtTodayFats.setText(String.valueOf(todayHistory.getTodays_fats()));
+            } else {
+                txtTodayDate.setText(todayStr);
+                comboTodayWorkout.setSelectedItem("");
+                txtTodayCalories.setText("");
+                txtTodayCarbs.setText("");
+                txtTodayProtein.setText("");
+                txtTodayFats.setText("");
+            }
+        }
 
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
@@ -83,9 +138,7 @@ public class GoalsGUI extends JFrame {
                 try {
                     //call method to insert or update goals for user
                     goalsLogic.upsertGoals(workouts_per, calories, carbs, protein, fats, email);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (InterruptedException ex) {
+                } catch (IOException | InterruptedException ex) {
                     throw new RuntimeException(ex);
                 }
 
@@ -110,8 +163,10 @@ public class GoalsGUI extends JFrame {
                 System.out.println("Inserting goal history for user with email address: " + email);
                 try {
                     //call method to insert new day goals
-                    goalsLogic.createGoalHistory(today_date, today_workout, todayCalories, todayCarbs, todayProtein, todayFats, email);
+                    goalsLogic.upsertGoalHistory(today_date, today_workout, todayCalories, todayCarbs, todayProtein, todayFats, email);
                 } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                } catch (InterruptedException ex) {
                     throw new RuntimeException(ex);
                 }
 

@@ -7,8 +7,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class DashboardGUI extends JFrame {
     //dotenv allows me to save keys in env file
@@ -20,26 +22,83 @@ public class DashboardGUI extends JFrame {
     private JPanel lblPanel;
     private JPanel botPanel;
     private JPanel topPanel;
-    private JLabel lblPrimaryGoal, lblCalories, lblCarbs, lblProtein, lblFats, lblGoalCalories, lblGoalCarbs, lblGoalProtein, lblGoalFats, lblBot;
+    private JLabel lblWorkoutStatus, lblCalories, lblCarbs, lblProtein, lblFats, lblGoalWorkout, lblGoalCalories, lblGoalCarbs, lblGoalProtein, lblGoalFats, lblBot;
 
     public DashboardGUI() {
 
-        // Back button
-        ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
-        btnBack = new JButton(backIcon);
-        btnBack.setBorderPainted(false);
-        btnBack.setContentAreaFilled(false);
+        // Get the current local date in ISO format
+        LocalDate today = LocalDate.now();
+        String todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        lblPrimaryGoal = new JLabel("Primary Goal: ");
-        lblCalories = new JLabel("Today's Calories: ");
-        lblCarbs = new JLabel("Today's Carbs: ");
-        lblProtein = new JLabel("Today's Protein: ");
-        lblFats = new JLabel("Today's Fats: ");
-        lblGoalCalories = new JLabel("Daily Calorie Goal: ");
-        lblGoalCarbs = new JLabel("Daily Carbs Goal: ");
-        lblGoalProtein = new JLabel("Daily Protein Goal: ");
-        lblGoalFats = new JLabel("Daily Fats Goal: ");
-        lblBot = new JLabel("Click on 'Joe', your AI fitness coach for daily macros, fitness, and health guidance!");
+        try {
+            // Back button
+            ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
+            btnBack = new JButton(backIcon);
+            btnBack.setBorderPainted(false);
+            btnBack.setContentAreaFilled(false);
+
+            // Initialize all labels before setting text
+            lblWorkoutStatus = new JLabel("Today's Workout: ");
+            lblCalories = new JLabel("Today's Calories: ");
+            lblCarbs = new JLabel("Today's Carbs: ");
+            lblProtein = new JLabel("Today's Protein: ");
+            lblFats = new JLabel("Today's Fats: ");
+            lblGoalWorkout = new JLabel("Workouts per Week (Goal):");
+            lblGoalCalories = new JLabel("Daily Calorie Goal: ");
+            lblGoalCarbs = new JLabel("Daily Carbs Goal: ");
+            lblGoalProtein = new JLabel("Daily Protein Goal: ");
+            lblGoalFats = new JLabel("Daily Fats Goal: ");
+            lblBot = new JLabel("Click on 'Joe', your AI fitness coach for daily macros, fitness, and health guidance!");
+
+            // Fetch goal data using the session email
+            String email = Session.getEmail();
+            GoalsLogic logic = new GoalsLogic();
+            UserGoalData goalData = logic.getUserGoalsAndHistoryByEmail(email);
+
+            if (goalData != null) {
+                // Set goal data to goal labels
+                UserGoals goals = goalData.getUserGoals();
+                if (goals != null) {
+                    lblGoalWorkout.setText("Workouts per Week (Goal): " + goals.getWorkouts_per_week());
+                    lblGoalCalories.setText("Daily Calorie Goal: " + goals.getDaily_calories());
+                    lblGoalCarbs.setText("Daily Carbs Goal: " + goals.getDaily_carbs());
+                    lblGoalProtein.setText("Daily Protein Goal: " + goals.getDaily_protein());
+                    lblGoalFats.setText("Daily Fats Goal: " + goals.getDaily_fats());
+                } else {
+                    lblGoalWorkout.setText("Workouts per Week (Goal): No data");
+                    lblGoalCalories.setText("Daily Calorie Goal: No data");
+                    lblGoalCarbs.setText("Daily Carbs Goal: No data");
+                    lblGoalProtein.setText("Daily Protein Goal: No data");
+                    lblGoalFats.setText("Daily Fats Goal: No data");
+                }
+
+                // Look for today's history in the list
+                java.util.List<UserGoalHistory> historyList = goalData.getHistory();
+                UserGoalHistory todayHistory = null;
+                for (UserGoalHistory history : historyList) {
+                    if (history.getGoal_date() != null && history.getGoal_date().equals(todayStr)) {
+                        todayHistory = history;
+                        break;
+                    }
+                }
+
+                if (todayHistory != null) {
+                    lblWorkoutStatus.setText("Today's Workout: " + (todayHistory.isTodays_workout() ? "Yes" : "No"));
+                    lblCalories.setText("Today's Calories: " + todayHistory.getTodays_calories());
+                    lblCarbs.setText("Today's Carbs: " + todayHistory.getTodays_carbs());
+                    lblProtein.setText("Today's Protein: " + todayHistory.getTodays_protein());
+                    lblFats.setText("Today's Fats: " + todayHistory.getTodays_fats());
+                } else {
+                    lblWorkoutStatus.setText("Today's Workout: No data");
+                    lblCalories.setText("Today's Calories: No data");
+                    lblCarbs.setText("Today's Carbs: No data");
+                    lblProtein.setText("Today's Protein: No data");
+                    lblFats.setText("Today's Fats: No data");
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
 
         btnBack.addActionListener(new ActionListener() {
             @Override
@@ -73,7 +132,7 @@ public class DashboardGUI extends JFrame {
 
         // Icons for Account, SetGoals, GoalHistory, Help
         String[] iconPaths = {"/account.png", "/goals.png", "/goal_history.png", "/help.png"};
-        String[] pageNames = {"Account", "SetGoals", "GoalHistory", "Help"};
+        String[] pageNames = {"Account", "Set Goals", "Goal History", "Help"};
 
         for (int i = 0; i < iconPaths.length; i++) {
             ImageIcon icon = getScaledIcon(iconPaths[i], 50, 50); // Fixed method call
@@ -82,11 +141,16 @@ public class DashboardGUI extends JFrame {
             btn.setBorderPainted(false);
             btn.setContentAreaFilled(false);
             String page = pageNames[i];
+            btn.setToolTipText(page);
 
             btn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    openPage(page);
+                    try {
+                        openPage(page);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
             });
 
@@ -112,11 +176,12 @@ public class DashboardGUI extends JFrame {
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
         lblWelcome.setFont(new Font("Helvetica", Font.BOLD, 25));
 
-        lblPrimaryGoal.setFont(mainFont);
+        lblWorkoutStatus.setFont(mainFont);
         lblCalories.setFont(mainFont);
         lblCarbs.setFont(mainFont);
         lblProtein.setFont(mainFont);
         lblFats.setFont(mainFont);
+        lblGoalWorkout.setFont(mainFont);
         lblGoalCalories.setFont(mainFont);
         lblGoalCarbs.setFont(mainFont);
         lblGoalProtein.setFont(mainFont);
@@ -131,11 +196,14 @@ public class DashboardGUI extends JFrame {
         labelGbc.fill = GridBagConstraints.HORIZONTAL;
         labelGbc.weightx = 1.0; // This is what allows them to push to edges
 
-        // Primary Goal
-        labelGbc.gridx = 0;
+        // Workout
         labelGbc.gridy = 0;
+        labelGbc.gridx = 0;
         labelGbc.anchor = GridBagConstraints.LINE_START;
-        lblPanel.add(lblPrimaryGoal, labelGbc);
+        lblPanel.add(lblWorkoutStatus, labelGbc);
+        labelGbc.gridx = 1;
+        labelGbc.anchor = GridBagConstraints.LINE_END;
+        lblPanel.add(lblGoalWorkout, labelGbc);
 
         // Calories
         labelGbc.gridy = 1;
@@ -194,6 +262,7 @@ public class DashboardGUI extends JFrame {
         btnBotpress.setBorderPainted(false);
         btnBotpress.setContentAreaFilled(false);
         botPanel.add(btnBotpress, BorderLayout.CENTER);
+        btnBotpress.setToolTipText("AI Chatbot");
 
         panel1.add(botPanel, gbc);
 
@@ -224,15 +293,15 @@ public class DashboardGUI extends JFrame {
         frame.setVisible(true);
     }
 
-    private void openPage(String page) {
+    private void openPage(String page) throws IOException {
         switch (page) {
             case "Account":
                 new AccountGUI();
                 break;
-            case "SetGoals":
+            case "Set Goals":
                 new GoalsGUI();
                 break;
-            case "GoalHistory":
+            case "Goal History":
                 new GoalHistoryGUI();
                 break;
             case "Help":
