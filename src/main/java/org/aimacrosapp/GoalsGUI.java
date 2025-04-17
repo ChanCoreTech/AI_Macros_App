@@ -11,7 +11,7 @@ public class GoalsGUI extends JFrame {
     private JLabel lblDirections, lblWorkoutsPer, lblCalories, lblCarbs, lblProtein, lblFats;
     private JLabel lblTodayWorkout, lblTodayCalories, lblTodayCarbs, lblTodayProtein, lblTodayFats, lblTodayDate;
 
-    private JButton btnBack, btnSubmit, btnUpdate;
+    private JButton btnBack, btnLogout, btnSubmit, btnUpdate;
 
     private JPanel panel1;
     private JPanel topPanel;
@@ -111,6 +111,18 @@ public class GoalsGUI extends JFrame {
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
         btnBack.setContentAreaFilled(false);
+        btnBack.setFocusPainted(false);
+
+        // Log Out
+        ImageIcon logoutIcon = new ImageIcon(getClass().getResource("/logout.png"));
+        btnLogout = new JButton(logoutIcon);
+        btnLogout.setBorderPainted(false);
+        btnLogout.setContentAreaFilled(false);
+
+        ToolTipManager.sharedInstance().setInitialDelay(100);
+        btnBack.setToolTipText("Back");
+        btnLogout.setToolTipText("Logout");
+
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -118,6 +130,31 @@ public class GoalsGUI extends JFrame {
                 JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                 if (topFrame != null) {
                     topFrame.dispose();
+                }
+            }
+        });
+
+        btnLogout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showOptionDialog(
+                        panel1,
+                        "Are you sure you want to log out?!",
+                        "Message",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        new Object[]{"Yes", "No"},
+                        "Yes"
+                );
+                if (option == 0) {
+                    new SignInGUI();
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                    if (topFrame != null) {
+                        topFrame.dispose();
+                    }
+                } else if (option == 1 || option == JOptionPane.CLOSED_OPTION) {
+                    //do nothing
                 }
             }
         });
@@ -206,12 +243,16 @@ public class GoalsGUI extends JFrame {
         txtTodayProtein.setFont(mainFont);
         txtTodayFats.setFont(mainFont);
 
-        // TOP PANEL (Back Button)
-        topPanel = new JPanel(null);
+        // Top panel for back button (left) and logout button (right)
+        topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
         topPanel.setPreferredSize(new Dimension(60, 60));
-        btnBack.setBounds(10, 10, 50, 50);
-        topPanel.add(btnBack);
+
+        btnBack.setPreferredSize(new Dimension(50, 50));
+        btnLogout.setPreferredSize(new Dimension(100, 50)); // adjust size as needed
+
+        topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
+        topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
         // MAIN GOALS PANEL
         panel1 = new JPanel(new GridBagLayout());

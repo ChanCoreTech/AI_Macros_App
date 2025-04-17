@@ -6,7 +6,6 @@ import java.util.UUID;
 public class Main {
     public static void main(String[] args) throws Exception {
         //try {
-            // Example: Hard-coded user data
             //object for AccountLogic class
             AccountLogic accountLogic = new AccountLogic();
 

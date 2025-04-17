@@ -16,8 +16,11 @@ public class ForgotPasswordGUI extends JFrame {
 
     private JTextField txtEmail = new JTextField(15);
     private JTextField txtNickname = new JTextField(15);
-    private JTextField txtPassword = new JTextField(15);
-    private JTextField txtConfirmPass = new JTextField(15);
+    private JPasswordField txtPassword = new JPasswordField(15);
+    private JPasswordField txtConfirmPass = new JPasswordField(15);
+
+    //boolean for reset password click event
+    private boolean isVerifiedStageComplete = false;
 
     public ForgotPasswordGUI(){
         //initialize elements
@@ -38,6 +41,8 @@ public class ForgotPasswordGUI extends JFrame {
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
         btnBack.setContentAreaFilled(false);
+        ToolTipManager.sharedInstance().setInitialDelay(100);
+        btnBack.setToolTipText("Back");
 
         //back button click event
         btnBack.addActionListener(new ActionListener() {
@@ -57,64 +62,55 @@ public class ForgotPasswordGUI extends JFrame {
         btnSubmit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //Account Logic object
                 AccountLogic accountLogic = new AccountLogic();
-
-                //text values
                 String email = txtEmail.getText();
                 String nickname = txtNickname.getText();
-                String password = txtPassword.getText();
-                String confirmPass = txtConfirmPass.getText();
+                String password = new String(txtPassword.getPassword());
+                String confirmPass = new String(txtConfirmPass.getPassword());
 
-                boolean isVerified = accountLogic.confirmAccount(email, nickname);
-                int clickStage = 0;
+                if (!isVerifiedStageComplete) {
+                    // Step 1: Verify identity
+                    boolean isVerified = accountLogic.confirmAccount(email, nickname);
+                    if (isVerified) {
+                        isVerifiedStageComplete = true;
 
-                if(isVerified){
-                    clickStage = 1;
-                    int option = JOptionPane.showOptionDialog(
-                            panel1,
-                            "Thanks for verifying you identity! Please proceed with the password reset",
-                            "Message",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            new Object[]{"OK"},
-                            "OK"
-                    );
+                        JOptionPane.showMessageDialog(panel1,
+                                "Thanks for verifying your identity! Please enter your new password.",
+                                "Verification Successful", JOptionPane.INFORMATION_MESSAGE);
 
-                    if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
                         txtEmail.setEnabled(false);
                         txtNickname.setEnabled(false);
                         txtPassword.setEnabled(true);
                         txtConfirmPass.setEnabled(true);
+
+                    } else {
+                        JOptionPane.showMessageDialog(panel1,
+                                "The email or nickname entered is not registered in our system.",
+                                "Verification Failed", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                } else {
+                    // Step 2: Update password
+                    boolean updated = accountLogic.updatePassword(email, password, confirmPass);
+                    if (updated) {
+                        JOptionPane.showMessageDialog(panel1,
+                                "Password updated successfully! Redirecting to sign in.",
+                                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                        new SignInGUI();
+                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                        if (topFrame != null) {
+                            topFrame.dispose();
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(panel1,
+                                "Password update failed. Ensure both password fields match and are valid.",
+                                "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-                else{
-                    int option = JOptionPane.showOptionDialog(
-                            panel1,
-                            "Sorry; the email or nickname entered is not registered in our system. Please enter correct entries and try again!",
-                            "Message",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            new Object[]{"OK"},
-                            "OK"
-                    );
-                }
-
-                if(clickStage == 1){
-                    //boolean u = accountLogic.updatePassword();
-                }
-
-//                //open a new page to create your account
-//                new CreateAccountGUI();
-//                //close current page
-//                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-//                if (topFrame != null) {
-//                    topFrame.dispose();
-//                }
             }
         });
+
 
         //resize all elements
         //Font headerFont = new Font("Helvetica", Font.BOLD, 20);

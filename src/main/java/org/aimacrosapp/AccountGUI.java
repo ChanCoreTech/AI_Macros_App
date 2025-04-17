@@ -14,27 +14,27 @@ import java.io.IOException;
         private JTextField txtFirst = new JTextField(15),
                 txtLast = new JTextField(15),
                 txtBirth = new JTextField(15),
-                txtGender = new JTextField(15),
                 txtHeightFeet = new JTextField(15),
                 txtHeightInches = new JTextField(15),
                 txtWeight = new JTextField(15),
                 txtEmail = new JTextField(15),
-                txtPassword = new JTextField(15),
                 txtNickname = new JTextField(15),
                 txtPhoneNumber = new JTextField(15),
                 txtEmailSecond = new JTextField(15);
 
-        private JComboBox<String> comboBodyType, comboExperience, comboActivity, comboPrimary;
+        private JPasswordField txtPassword = new JPasswordField(15);
+
+        private JComboBox<String> comboGender, comboBodyType, comboExperience, comboActivity, comboPrimary;
 
         //back arrow for every page
         ImageIcon backIcon;
-        private JButton btnBack, btnUpdateAccount;
+        private JButton btnBack, btnLogout, btnUpdateAccount, btnResetPassword;
         private JPanel panel1;
         private JPanel topPanel;
 
         public AccountGUI(){
             //initialize elements
-            lblDirections = new JLabel("Below is all of your profile information.");
+            lblDirections = new JLabel("Here is your profile information. Feel free to edit whenever you want!");
             lblFirst = new JLabel("First Name:");
             lblLast = new JLabel("Last Name:");
             lblBirth = new JLabel("Birth Date:");
@@ -52,30 +52,34 @@ import java.io.IOException;
             lblPhoneNumber = new JLabel("Phone Number:");
             lblEmailSecond = new JLabel("Secondary Email:");
             btnUpdateAccount = new JButton("Update Account");
+            btnResetPassword = new JButton("Reset Password");
 
             //placeholders
-            txtFirst.setText("John");
-            txtLast.setText("Doe");
-            txtBirth.setText("1960/08/08");
-            txtGender.setText("Male");
-            txtHeightFeet.setText("5");
-            txtHeightInches.setText("9");
-            txtWeight.setText("140");
-            txtEmail.setText("jdoe1@example.com");
-            txtPassword.setText("jdoe123");
-            txtNickname.setText("AWESOME");
-            txtPhoneNumber.setText("440-658-8956");
+//            txtFirst.setText("John");
+//            txtLast.setText("Doe");
+//            txtBirth.setText("1960/08/08");
+//            comboGender.setSelectedItem("Male");
+//            txtHeightFeet.setText("5");
+//            txtHeightInches.setText("9");
+//            txtWeight.setText("140");
+//            txtEmail.setText("jdoe1@example.com");
+//            txtPassword.setText("jdoe123");
+//            txtNickname.setText("AWESOME");
+//            txtPhoneNumber.setText("440-658-8956");
 
+            String[] comboOptionsGender = {"", "Male", "Female"};
             String[] comboOptionsBodyType = {"", "Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
             String[] comboOptionsExperience = {"", "Beginner", "Intermediate", "Advanced"};
             String[] comboOptionsActivity = {"", "Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extreme (5-7 days a week)"};
             String[] comboOptionsPrimary = {"", "Improve Overall Fitness", "Improve Heart Health", "Improve Conditioning", "Physical Therapy", "Lose Weight", "Lose Weight (Rapid)", "Gain Weight", "Gain Weight (Rapid)", "Gain Muscle (Lean)", "Gain Muscle (Bulk)"};
 
+            comboGender = new JComboBox<>(comboOptionsGender);
             comboBodyType = new JComboBox<>(comboOptionsBodyType);
             comboExperience = new JComboBox<>(comboOptionsExperience);
             comboActivity = new JComboBox<>(comboOptionsActivity);
             comboPrimary = new JComboBox<>(comboOptionsPrimary);
 
+            comboGender.setPreferredSize(new Dimension(180, 25));
             comboBodyType.setPreferredSize(new Dimension(180, 25));
             comboExperience.setPreferredSize(new Dimension(180, 25));
             comboActivity.setPreferredSize(new Dimension(180, 25));
@@ -95,7 +99,7 @@ import java.io.IOException;
                     txtFirst.setText(user.getFirst_name());
                     txtLast.setText(user.getLast_name());
                     txtBirth.setText(user.getBirth_date());
-                    txtGender.setText(user.getGender());
+                    comboGender.setSelectedItem(user.getGender());
                     txtHeightFeet.setText(String.valueOf(user.getHeight_feet()));
                     txtHeightInches.setText(String.valueOf(user.getHeight_inches()));
                     txtWeight.setText(String.valueOf(user.getWeight_lbs()));
@@ -120,17 +124,53 @@ import java.io.IOException;
             btnBack = new JButton(backIcon);
             btnBack.setBorderPainted(false);
             btnBack.setContentAreaFilled(false);
+            btnBack.setFocusPainted(false);
+
+            // Log Out
+            ImageIcon logoutIcon = new ImageIcon(getClass().getResource("/logout.png"));
+            btnLogout = new JButton(logoutIcon);
+            btnLogout.setBorderPainted(false);
+            btnLogout.setContentAreaFilled(false);
+
+            ToolTipManager.sharedInstance().setInitialDelay(100);
+            btnBack.setToolTipText("Back");
+            btnLogout.setToolTipText("Logout");
 
             //back button click event
             btnBack.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //go back to Sign In
-                    new SignInGUI();
+                    //go back to Dashboard
+                    new DashboardGUI();
                     //close current page
                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                     if (topFrame != null) {
                         topFrame.dispose();
+                    }
+                }
+            });
+
+            btnLogout.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int option = JOptionPane.showOptionDialog(
+                            panel1,
+                            "Are you sure you want to log out?!",
+                            "Message",
+                            JOptionPane.DEFAULT_OPTION,
+                            JOptionPane.INFORMATION_MESSAGE,
+                            null,
+                            new Object[]{"Yes", "No"},
+                            "Yes"
+                    );
+                    if (option == 0) {
+                        new SignInGUI();
+                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                        if (topFrame != null) {
+                            topFrame.dispose();
+                        }
+                    } else if (option == 1 || option == JOptionPane.CLOSED_OPTION) {
+                        //do nothing
                     }
                 }
             });
@@ -143,7 +183,7 @@ import java.io.IOException;
                     String first_name = txtFirst.getText();
                     String last_name = txtLast.getText();
                     String birth_date = txtBirth.getText();
-                    String gender = txtGender.getText();
+                    String gender = (String) comboGender.getSelectedItem();
                     String height_feet_str = txtHeightFeet.getText();
                     String height_inches_str = txtHeightInches.getText();
                     String weight_lbs_str = txtWeight.getText();
@@ -152,7 +192,7 @@ import java.io.IOException;
                     String activity_goal = (String) comboActivity.getSelectedItem();
                     String primary_goal = (String) comboPrimary.getSelectedItem();
                     String email = txtEmail.getText();
-                    String password = txtPassword.getText();
+                    String password = new String(txtPassword.getPassword());
                     String nickname = txtNickname.getText();
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
@@ -208,11 +248,25 @@ import java.io.IOException;
                 }
             });
 
+            //reset password click event
+            btnResetPassword.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    //open a new page to reset forget password
+                    new ForgotPasswordGUI();
+                    //close current page
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                    if (topFrame != null) {
+                        topFrame.dispose();
+                    }
+                }
+            });
+
 
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
-            Font comboFont = new Font("Verdana", Font.PLAIN, 12);
+            Font comboFont = new Font("Verdana", Font.PLAIN, 15);
             Font boldFont = new Font("Verdana", Font.BOLD, 15);
             lblDirections.setFont(headerFont);
             lblFirst.setFont(mainFont);
@@ -233,11 +287,12 @@ import java.io.IOException;
             lblEmailSecond.setFont(mainFont);
 
             btnUpdateAccount.setFont(boldFont);
+            btnResetPassword.setFont(boldFont);
 
             txtFirst.setFont(mainFont);
             txtLast.setFont(mainFont);
             txtBirth.setFont(mainFont);
-            txtGender.setFont(mainFont);
+            comboGender.setFont(mainFont);
             txtHeightFeet.setFont(mainFont);
             txtHeightInches.setFont(mainFont);
             txtWeight.setFont(mainFont);
@@ -251,12 +306,16 @@ import java.io.IOException;
             comboActivity.setFont(comboFont);
             comboPrimary.setFont(comboFont);
 
-            // Top panel with null layout for the back button
-            topPanel = new JPanel(null); // Null layout
+            // Top panel for back button (left) and logout button (right)
+            topPanel = new JPanel(new BorderLayout());
             topPanel.setBackground(Color.WHITE);
-            topPanel.setPreferredSize(new Dimension(60, 60)); // Fixed height
-            btnBack.setBounds(10, 10, 50, 50); // Positioning manually
-            topPanel.add(btnBack);
+            topPanel.setPreferredSize(new Dimension(60, 60));
+
+            btnBack.setPreferredSize(new Dimension(50, 50));
+            btnLogout.setPreferredSize(new Dimension(100, 50)); // adjust size as needed
+
+            topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
+            topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
             //set up panel
             panel1 = new JPanel(new GridBagLayout());
@@ -318,7 +377,7 @@ import java.io.IOException;
             gbc.gridy++;
             panel1.add(lblGender, gbc);
             gbc.gridx = 1;
-            panel1.add(txtGender, gbc);
+            panel1.add(comboGender, gbc);
 
             //Phone Number
             gbc.gridx = 2;
@@ -381,12 +440,18 @@ import java.io.IOException;
             gbc.gridx = 1;
             panel1.add(comboPrimary, gbc);
 
-            // Button
+            // Button for Updating Account
             gbc.gridx = 0;
             gbc.gridy++;
             gbc.gridwidth = 2; // Center button under both columns
-            gbc.anchor = GridBagConstraints.CENTER;
+            gbc.anchor = GridBagConstraints.WEST;
             panel1.add(btnUpdateAccount, gbc);
+
+            // Button for Resetting Password
+            gbc.gridx = 1;
+            gbc.anchor = GridBagConstraints.EAST;
+            gbc.insets = new Insets(10, 200, 10, 10); // top, left, bottom, right
+            panel1.add(btnResetPassword, gbc);
 
             //setup JFrame
             JFrame frame = new JFrame("Create Account");

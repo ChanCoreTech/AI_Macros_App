@@ -13,7 +13,6 @@ public class CreateAccountGUI extends JFrame {
     private JTextField txtFirst = new JTextField(15),
             txtLast = new JTextField(15),
             txtBirth = new JTextField(15),
-            txtGender = new JTextField(15),
             txtHeightFeet = new JTextField(15),
             txtHeightInches = new JTextField(15),
             txtWeight = new JTextField(15),
@@ -23,7 +22,7 @@ public class CreateAccountGUI extends JFrame {
             txtPhoneNumber = new JTextField(15),
             txtEmailSecond = new JTextField(15);
 
-    private JComboBox<String> comboBodyType, comboExperience, comboActivity, comboPrimary;
+    private JComboBox<String> comboGender, comboBodyType, comboExperience, comboActivity, comboPrimary;
 
     //back arrow for every page
     ImageIcon backIcon;
@@ -52,16 +51,19 @@ public class CreateAccountGUI extends JFrame {
             lblEmailSecond = new JLabel("Secondary Email:");
             btnCreateAccount = new JButton("Create Account");
 
+            String[] comboOptionsGender = {"", "Male", "Female"};
             String[] comboOptionsBodyType = {"", "Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
             String[] comboOptionsExperience = {"", "Beginner", "Intermediate", "Advanced"};
             String[] comboOptionsActivity = {"", "Sedentary (0-1 days a week)", "Light (1-3 days a week)", "Moderate (3-5 days a week)", "Extreme (5-7 days a week)"};
             String[] comboOptionsPrimary = {"", "Improve Overall Fitness", "Improve Heart Health", "Improve Conditioning", "Physical Therapy", "Lose Weight", "Lose Weight (Rapid)", "Gain Weight", "Gain Weight (Rapid)", "Gain Muscle (Lean)", "Gain Muscle (Bulk)"};
 
+            comboGender = new JComboBox<>(comboOptionsGender);
             comboBodyType = new JComboBox<>(comboOptionsBodyType);
             comboExperience = new JComboBox<>(comboOptionsExperience);
             comboActivity = new JComboBox<>(comboOptionsActivity);
             comboPrimary = new JComboBox<>(comboOptionsPrimary);
 
+            comboGender.setPreferredSize(new Dimension(180, 25));
             comboBodyType.setPreferredSize(new Dimension(180, 25));
             comboExperience.setPreferredSize(new Dimension(180, 25));
             comboActivity.setPreferredSize(new Dimension(180, 25));
@@ -72,6 +74,9 @@ public class CreateAccountGUI extends JFrame {
             btnBack = new JButton(backIcon);
             btnBack.setBorderPainted(false);
             btnBack.setContentAreaFilled(false);
+
+            ToolTipManager.sharedInstance().setInitialDelay(100);
+            btnBack.setToolTipText("Back");
 
             //back button click event
             btnBack.addActionListener(new ActionListener() {
@@ -95,7 +100,7 @@ public class CreateAccountGUI extends JFrame {
                     String first_name = txtFirst.getText();
                     String last_name = txtLast.getText();
                     String birth_date = txtBirth.getText();
-                    String gender = txtGender.getText();
+                    String gender = (String) comboGender.getSelectedItem();
                     String height_feet = txtHeightFeet.getText();
                     String height_inches = txtHeightInches.getText();
                     String weight_lbs = txtWeight.getText();
@@ -183,7 +188,7 @@ public class CreateAccountGUI extends JFrame {
             txtFirst.setFont(mainFont);
             txtLast.setFont(mainFont);
             txtBirth.setFont(mainFont);
-            txtGender.setFont(mainFont);
+            comboGender.setFont(mainFont);
             txtHeightFeet.setFont(mainFont);
             txtHeightInches.setFont(mainFont);
             txtWeight.setFont(mainFont);
@@ -264,7 +269,7 @@ public class CreateAccountGUI extends JFrame {
             gbc.gridy++;
             panel1.add(lblGender, gbc);
             gbc.gridx = 1;
-            panel1.add(txtGender, gbc);
+            panel1.add(comboGender, gbc);
 
             //Phone Number
             gbc.gridx = 2;

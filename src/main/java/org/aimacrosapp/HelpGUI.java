@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 
 public class HelpGUI extends JFrame {
 
-    private JButton btnBack;
+    private JButton btnBack, btnLogout;
 
     public HelpGUI() {
         // === BACK BUTTON ===
@@ -15,17 +15,31 @@ public class HelpGUI extends JFrame {
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
         btnBack.setContentAreaFilled(false);
+        btnBack.setFocusPainted(false);
         btnBack.setBounds(10, 10, 50, 50);
-        btnBack.addActionListener(e -> {
-            dispose();
-            new DashboardGUI();
-        });
+
+        // Log Out
+        ImageIcon logoutIcon = new ImageIcon(getClass().getResource("/logout.png"));
+        btnLogout = new JButton(logoutIcon);
+        btnLogout.setBorderPainted(false);
+        btnLogout.setContentAreaFilled(false);
+
+        ToolTipManager.sharedInstance().setInitialDelay(100);
+        btnBack.setToolTipText("Back");
+        btnLogout.setToolTipText("Logout");
 
         // === TOP PANEL ===
         JPanel topPanel = new JPanel(null);
+        // Top panel for back button (left) and logout button (right)
+        topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
         topPanel.setPreferredSize(new Dimension(60, 60));
-        topPanel.add(btnBack);
+
+        btnBack.setPreferredSize(new Dimension(50, 50));
+        btnLogout.setPreferredSize(new Dimension(100, 50)); // adjust size as needed
+
+        topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
+        topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
         // === FONTS ===
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
@@ -143,5 +157,35 @@ public class HelpGUI extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
 
         setVisible(true);
+
+        btnBack.addActionListener(e -> {
+            dispose();
+            new DashboardGUI();
+        });
+
+        btnLogout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showOptionDialog(
+                        leftPanel,
+                        "Are you sure you want to log out?!",
+                        "Message",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        new Object[]{"Yes", "No"},
+                        "Yes"
+                );
+                if (option == 0) {
+                    new SignInGUI();
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(leftPanel);
+                    if (topFrame != null) {
+                        topFrame.dispose();
+                    }
+                } else if (option == 1 || option == JOptionPane.CLOSED_OPTION) {
+                    //do nothing
+                }
+            }
+        });
     }
 }

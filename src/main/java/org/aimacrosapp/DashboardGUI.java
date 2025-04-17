@@ -17,7 +17,7 @@ public class DashboardGUI extends JFrame {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String BOTPRESS_URL = dotenv.get("MACROS_APP_BOTPRESS_URL_LINK");
 
-    private JButton btnBack;
+    private JButton btnBack, btnLogout;
     private JPanel panel1;
     private JPanel lblPanel;
     private JPanel botPanel;
@@ -36,6 +36,14 @@ public class DashboardGUI extends JFrame {
             btnBack = new JButton(backIcon);
             btnBack.setBorderPainted(false);
             btnBack.setContentAreaFilled(false);
+            btnBack.setFocusPainted(false);
+
+
+            // Log Out
+            ImageIcon logoutIcon = new ImageIcon(getClass().getResource("/logout.png"));
+            btnLogout = new JButton(logoutIcon);
+            btnLogout.setBorderPainted(false);
+            btnLogout.setContentAreaFilled(false);
 
             // Initialize all labels before setting text
             lblWorkoutStatus = new JLabel("Today's Workout: ");
@@ -112,12 +120,42 @@ public class DashboardGUI extends JFrame {
             }
         });
 
-        // Top panel for back button
-        topPanel = new JPanel(null);
+        btnLogout.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showOptionDialog(
+                        panel1,
+                        "Are you sure you want to log out?!",
+                        "Message",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        new Object[]{"Yes", "No"},
+                        "Yes"
+                );
+                if (option == 0) {
+                    new SignInGUI();
+                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                    if (topFrame != null) {
+                        topFrame.dispose();
+                    }
+                } else if (option == 1 || option == JOptionPane.CLOSED_OPTION) {
+                    //do nothing
+                }
+            }
+        });
+
+        // Top panel for back button (left) and logout button (right)
+        topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
         topPanel.setPreferredSize(new Dimension(60, 60));
-        btnBack.setBounds(10, 10, 50, 50);
-        topPanel.add(btnBack);
+
+        btnBack.setPreferredSize(new Dimension(50, 50));
+        btnLogout.setPreferredSize(new Dimension(100, 50)); // adjust size as needed
+
+        topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
+        topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
+
 
         // Main panel with GridBagLayout
         panel1 = new JPanel(new GridBagLayout());
@@ -141,7 +179,13 @@ public class DashboardGUI extends JFrame {
             btn.setBorderPainted(false);
             btn.setContentAreaFilled(false);
             String page = pageNames[i];
+            //set up preview text
+            ToolTipManager.sharedInstance().setInitialDelay(100);
+            btnBack.setToolTipText("Back");
+            btnLogout.setToolTipText("Logout");
             btn.setToolTipText(page);
+
+
 
             btn.addActionListener(new ActionListener() {
                 @Override
@@ -165,6 +209,7 @@ public class DashboardGUI extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
+        panel1.add(iconPanel, gbc);
         panel1.add(iconPanel, gbc);
 
         gbc.gridy = 1;

@@ -119,9 +119,6 @@ public class AccountLogic {
         return getUserAndAccountByEmail(email); // this already returns both user + user_account
     }
 
-
-
-
     //method to update/edit a user field
     public void updateUserField(UUID userId) {
         Scanner scanner = new Scanner(System.in);
@@ -412,9 +409,6 @@ public class AccountLogic {
         return response.statusCode() == 204 || response.statusCode() == 200;
     }
 
-
-
-
     //method to update/edit user account
     public boolean updateUserAccount(String email, String password, String nickname,
                                      String phoneNumber, String emailSecond) throws IOException, InterruptedException {
@@ -439,10 +433,6 @@ public class AccountLogic {
         System.out.println("UserAccount update response: " + response.body());
         return response.statusCode() == 204 || response.statusCode() == 200;
     }
-
-
-
-
 
     // Method to sign in a user
     public boolean signIn(String email, String password) {
@@ -557,6 +547,48 @@ public class AccountLogic {
         }
     }
 
+    public boolean updatePassword(String email, String newPassword, String confirmPassword) {
+        if (email == null || email.isEmpty()) {
+            System.out.println("Email is required.");
+            return false;
+        }
+
+        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+            System.out.println("Passwords do not match or are empty.");
+            return false;
+        }
+
+        try {
+            // Build the PATCH body
+            JSONObject json = new JSONObject();
+            json.put("password", newPassword);
+
+            // PATCH request to update password based on email
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
+                    .header("Content-Type", "application/json")
+                    .header("apikey", DB_KEY)
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 204 || response.statusCode() == 200) {
+                System.out.println("Password updated successfully for: " + email);
+                return true;
+            } else {
+                System.out.println("Failed to update password: " + response.body());
+                return false;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     //setup connection to database for getUserAccountByEmail
     private HttpURLConnection setupConnection(String endpoint, String method) throws IOException {
         URL url = new URL(DB_URL + endpoint);
@@ -649,25 +681,3 @@ public class AccountLogic {
     }
 }
 
-
-    // Method to reset password after verification
-//    public void updatePassword(String email, String password, String confirmPassword) {
-//
-//
-//        //extract user id?
-//
-//
-//        // Validate field
-//        boolean isMatch = false;
-//            if (password.equals(confirmPassword)) {
-//                isMatch = true;
-//            }
-//
-//        if (!isMatch) {
-//            System.out.println("Field names do not match.");
-//            return;
-//        }
-//
-//        // Call API update method
-//        updateDatabase(userId, password, confirmPassword);
-//    }
