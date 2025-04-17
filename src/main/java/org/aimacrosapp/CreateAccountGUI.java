@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class CreateAccountGUI extends JFrame {
     private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
@@ -17,10 +18,11 @@ public class CreateAccountGUI extends JFrame {
             txtHeightInches = new JTextField(15),
             txtWeight = new JTextField(15),
             txtEmail = new JTextField(15),
-            txtPassword = new JTextField(15),
             txtNickname = new JTextField(15),
             txtPhoneNumber = new JTextField(15),
             txtEmailSecond = new JTextField(15);
+
+    private JPasswordField txtPassword = new JPasswordField(15);
 
     private JComboBox<String> comboGender, comboBodyType, comboExperience, comboActivity, comboPrimary;
 
@@ -96,7 +98,6 @@ public class CreateAccountGUI extends JFrame {
             btnCreateAccount.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //values of text fields
                     String first_name = txtFirst.getText();
                     String last_name = txtLast.getText();
                     String birth_date = txtBirth.getText();
@@ -108,57 +109,62 @@ public class CreateAccountGUI extends JFrame {
                     String experienceLevel = (String) comboExperience.getSelectedItem();
                     String activity_goal = (String) comboActivity.getSelectedItem();
                     String primary_goal = (String) comboPrimary.getSelectedItem();
-                    String email = txtEmail.getText();
-                    String password = txtPassword.getText();
+                    String email = txtEmail.getText().trim();
+                    String password = new String(txtPassword.getPassword());
                     String nickname = txtNickname.getText();
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
 
-                    //create a user based on text entries
-                    User user = new User(first_name, last_name, birth_date, gender, Integer.parseInt(height_feet), Integer.parseInt(height_inches),
+                    User user = new User(first_name, last_name, birth_date, gender,
+                            Integer.parseInt(height_feet), Integer.parseInt(height_inches),
                             Integer.parseInt(weight_lbs), body_type, experienceLevel, activity_goal, primary_goal);
-                    //created an account for that user based on text entries
+
                     UserAccount userAccount = new UserAccount(user, email, password, nickname, phone_number, email_second);
-                    //created account logic object
                     AccountLogic accountLogic = new AccountLogic();
+
                     try {
-                        //userId has been retrieved along with creating a new user based on what they entered
-                        String userId = accountLogic.createUser(user.getFirst_name(), user.getLast_name(), user.getBirth_date(), user.getGender(), user.getHeight_feet(),
-                                user.getHeight_inches(), user.getWeight_lbs(), user.getBody_type(), user.getExperience_level(), user.getActivity_level(),
-                                user.getPrimary_goal());
-                        //if user is created, create a user account using that user id retrieved
-                        if(userId != null){
-                            boolean userAccountCreated = accountLogic.createUserAccount(userAccount.getEmail(), userAccount.getPassword(), userAccount.getNickname(),
-                                    userAccount.getPhone_number(), userAccount.getEmail_second(), userId);
-                        }
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
+                        // 🔐 Step 1: Sign up using Supabase Auth (this also sets access token in Session)
+                        String userId = accountLogic.signUpUser(email, password);
 
-                    // Action to be performed when the button is clicked
-                    int option = JOptionPane.showOptionDialog(
-                            panel1,
-                            "Thanks! Your account has been created!",
-                            "Message",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            new Object[]{"OK"},  // Custom button text
-                            "OK"
-                    );
+                        if (userId != null) {
+                            // ✅ Step 2: Insert into user table
+                            String userTableId = accountLogic.createUser(user.getFirst_name(), user.getLast_name(), user.getBirth_date(), user.getGender(),
+                                    user.getHeight_feet(), user.getHeight_inches(), user.getWeight_lbs(), user.getBody_type(),
+                                    user.getExperience_level(), user.getActivity_level(), user.getPrimary_goal());
 
-                    // Perform an action if anything is clicked
-                    if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
-                        //open page to sign in using new account
-                        new SignInGUI();
-                        //close current page
-                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-                        if (topFrame != null) {
-                            topFrame.dispose();
+                            // ✅ Step 3: Insert into user_account table
+                            if (userTableId != null) {
+                                boolean userAccountCreated = accountLogic.createUserAccount(
+                                        userAccount.getEmail(),
+                                        password,
+                                        userAccount.getNickname(),
+                                        userAccount.getPhone_number(),
+                                        userAccount.getEmail_second(),
+                                        userTableId
+                                );
+
+                                if (userAccountCreated) {
+                                    JOptionPane.showMessageDialog(panel1, "Thanks! Your account has been created!");
+                                    new SignInGUI();
+                                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                                    if (topFrame != null) {
+                                        topFrame.dispose();
+                                    }
+                                    return;
+                                }
+                            }
                         }
+
+                        // ❌ If any part fails
+                        JOptionPane.showMessageDialog(panel1, "Failed to create account. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(panel1, "An error occurred. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });
+
 
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);

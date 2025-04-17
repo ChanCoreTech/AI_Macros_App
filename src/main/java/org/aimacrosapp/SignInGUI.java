@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class SignInGUI extends JFrame{
     private JLabel lblWelcome, lblEmail, lblPassword;
@@ -79,7 +80,6 @@ public class SignInGUI extends JFrame{
                 String password = new String(txtPassword.getPassword());
 
                 AccountLogic accountLogic = new AccountLogic();
-                //GoalsLogic goalsLogic = new GoalsLogic();
                 boolean isAuthenticated = accountLogic.signIn(email, password);
 
                 // Proceed only if authentication is successful

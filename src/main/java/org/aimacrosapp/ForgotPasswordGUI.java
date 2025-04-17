@@ -111,10 +111,9 @@ public class ForgotPasswordGUI extends JFrame {
             }
         });
 
-
         //resize all elements
         //Font headerFont = new Font("Helvetica", Font.BOLD, 20);
-        Font headerFont = new Font("Helvetica", Font.BOLD, 15);
+        Font headerFont = new Font("Helvetica", Font.BOLD, 18);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
         lblDirections.setFont(headerFont);

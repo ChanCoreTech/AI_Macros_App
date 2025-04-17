@@ -27,15 +27,23 @@ public class GoalsLogic {
     private HttpURLConnection setupConnection(String endpoint, String method) throws IOException {
         URL url = new URL(DB_URL + endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod(method);  // Use the actual HTTP method passed in
+        conn.setRequestMethod(method);
 
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("apikey", DB_KEY);
+
+        // Add Authorization header using token stored in Session
+        String token = Session.getAccessToken();
+        if (token != null && !token.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+        }
+
         conn.setRequestProperty("Prefer", "return=representation");
-        conn.setDoOutput(true);
+        conn.setDoOutput(true); // optional for GET, required for POST/PATCH/DELETE
 
         return conn;
     }
+
 
     private String extractUserId(String jsonResponse) {
         if (jsonResponse == null || jsonResponse.isEmpty()) {
@@ -55,7 +63,14 @@ public class GoalsLogic {
 
     public String getUserIdByEmail(String email) throws IOException {
         String endpoint = "/rest/v1/user_account?email=eq." + email + "&select=user_id";
+
         HttpURLConnection conn = setupConnection(endpoint, "GET");
+
+        // Add Authorization token to the request
+        String token = Session.getAccessToken();
+        if (token != null && !token.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+        }
 
         int responseCode = conn.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -82,7 +97,7 @@ public class GoalsLogic {
 
     public boolean upsertGoals(String workouts_per_week, String daily_calories, String daily_carbs,
                                String daily_protein, String daily_fats, String email) throws IOException, InterruptedException {
-        String user_id = getUserId(email);
+        String user_id = getUserId(email);  // This now respects token auth
         if (user_id == null || user_id.isEmpty()) {
             System.out.println("Invalid user_id provided");
             return false;
@@ -100,7 +115,7 @@ public class GoalsLogic {
         for (int i = 0; i < fields.length; i++) {
             String field = fields[i];
             String value = values[i];
-            updateUserGoalField(user_id, field, value);
+            updateUserGoalField(user_id, field, value); // make sure this uses the token
         }
 
         return true;
@@ -138,22 +153,26 @@ public class GoalsLogic {
     }
 
 
-    private boolean userGoalsExist(String user_id) throws IOException {
-        String endpoint = "/rest/v1/user_goals?user_id=eq." + user_id;
-        HttpURLConnection conn = setupConnection(endpoint, "GET");
+    private boolean userGoalsExist(String user_id) throws IOException, InterruptedException {
+        String endpoint = DB_URL + "/rest/v1/user_goals?user_id=eq." + user_id;
 
-        int responseCode = conn.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            try (Scanner scanner = new Scanner(conn.getInputStream())) {
-                StringBuilder jsonResponse = new StringBuilder();
-                while (scanner.hasNext()) {
-                    jsonResponse.append(scanner.nextLine());
-                }
-                JSONArray resultArray = new JSONArray(jsonResponse.toString());
-                return resultArray.length() > 0;
-            }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Content-Type", "application/json")
+                .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + Session.getAccessToken())
+                .GET()
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 200) {
+            JSONArray resultArray = new JSONArray(response.body());
+            return resultArray.length() > 0;
         } else {
-            System.out.println("Failed to check for user_goals entry");
+            System.out.println("Failed to check for user_goals entry. Status: " + response.statusCode());
+            System.out.println("Response: " + response.body());
             return false;
         }
     }
@@ -166,11 +185,12 @@ public class GoalsLogic {
         // Construct the PATCH request body
         String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
 
-        // Create HTTP PATCH request
+        // Create HTTP PATCH request with access token
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(DB_URL + "/rest/v1/user_goals?user_id=eq." + user_id))
                 .header("Content-Type", "application/json")
                 .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + Session.getAccessToken())
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
                 .build();
 
@@ -181,9 +201,11 @@ public class GoalsLogic {
             System.out.println("Update successful for field: " + field);
         } else {
             System.out.println("Update failed for field: " + field);
-            System.out.println(response.body());
+            System.out.println("Status: " + response.statusCode());
+            System.out.println("Response: " + response.body());
         }
     }
+
 
     private void updateGoalHistoryField(String user_id, String goal_date, String field, String newValue) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
@@ -194,6 +216,7 @@ public class GoalsLogic {
                 .uri(URI.create(DB_URL + "/rest/v1/user_goal_history?user_id=eq." + user_id + "&goal_date=eq." + goal_date))
                 .header("Content-Type", "application/json")
                 .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + Session.getAccessToken()) // 🔐 Add token
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
                 .build();
 
@@ -203,7 +226,8 @@ public class GoalsLogic {
             System.out.println("Updated field in goal history: " + field);
         } else {
             System.out.println("Failed to update field: " + field);
-            System.out.println(response.body());
+            System.out.println("Status: " + response.statusCode());
+            System.out.println("Response: " + response.body());
         }
     }
 
@@ -218,19 +242,20 @@ public class GoalsLogic {
         }
 
         if (goalHistoryExists(user_id, goal_date)) {
-            // Update each field like upsertGoals does
+            // Update fields
             updateGoalHistoryField(user_id, goal_date, "todays_workout", todays_workout);
             updateGoalHistoryField(user_id, goal_date, "todays_calories", todays_calories);
             updateGoalHistoryField(user_id, goal_date, "todays_carbs", todays_carbs);
             updateGoalHistoryField(user_id, goal_date, "todays_protein", todays_protein);
             updateGoalHistoryField(user_id, goal_date, "todays_fats", todays_fats);
         } else {
-            // Create a new record if none exists for that user_id and date
+            // Insert new entry
             return createGoalHistory(goal_date, todays_workout, todays_calories, todays_carbs, todays_protein, todays_fats, email);
         }
 
         return true;
     }
+
 
     public boolean createGoalHistory(String goal_date, String todays_workout, String todays_calories,
                                      String todays_carbs, String todays_protein, String todays_fats,
@@ -247,31 +272,40 @@ public class GoalsLogic {
                 goal_date, todays_workout, todays_calories, todays_carbs, todays_protein, todays_fats, user_id
         );
 
-        HttpURLConnection conn = setupConnection("/rest/v1/user_goal_history", "POST");
+        // === Build request ===
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(DB_URL + "/rest/v1/user_goal_history"))
+                .header("Content-Type", "application/json")
+                .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + Session.getAccessToken())  // Use token!
+                .header("Prefer", "return=representation")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonInputString))
+                .build();
 
-        try (OutputStream os = conn.getOutputStream()) {
-            os.write(jsonInputString.getBytes(StandardCharsets.UTF_8));
+        // === Send request ===
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = null;
+
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
 
-        int responseCode = conn.getResponseCode();
         System.out.println("Creating user_goal_history entry with JSON: " + jsonInputString);
+        System.out.println("Response Code: " + response.statusCode());
+        System.out.println("Response Body: " + response.body());
 
-        try (Scanner scanner = new Scanner(
-                responseCode == HttpURLConnection.HTTP_CREATED ? conn.getInputStream() : conn.getErrorStream()
-        )) {
-            StringBuilder response = new StringBuilder();
-            while (scanner.hasNext()) {
-                response.append(scanner.nextLine());
-            }
-            System.out.println("Response: " + response.toString());
-        }
-
-        return responseCode == HttpURLConnection.HTTP_CREATED;
+        return response.statusCode() == 201;  // 201 = HTTP_CREATED
     }
+
 
     private boolean goalHistoryExists(String user_id, String goal_date) throws IOException {
         String endpoint = "/rest/v1/user_goal_history?user_id=eq." + user_id + "&goal_date=eq." + goal_date;
         HttpURLConnection conn = setupConnection(endpoint, "GET");
+
+        conn.setRequestProperty("Authorization", "Bearer " + Session.getAccessToken());
 
         int responseCode = conn.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -289,10 +323,12 @@ public class GoalsLogic {
         }
     }
 
+
     public UserGoalData getUserGoalsAndHistoryByEmail(String email) throws IOException {
         // Step 1: Fetch user_id from user_account using email
         String accountEndpoint = "/rest/v1/user_account?email=eq." + email + "&select=user_id";
         HttpURLConnection accountConn = setupConnection(accountEndpoint, "GET");
+        accountConn.setRequestProperty("Authorization", "Bearer " + Session.getAccessToken());
 
         int accountResponse = accountConn.getResponseCode();
         if (accountResponse == HttpURLConnection.HTTP_OK) {
@@ -309,6 +345,7 @@ public class GoalsLogic {
                     // Step 2: Fetch user_goals by user_id
                     String goalsEndpoint = "/rest/v1/user_goals?user_id=eq." + userId + "&select=*";
                     HttpURLConnection goalsConn = setupConnection(goalsEndpoint, "GET");
+                    goalsConn.setRequestProperty("Authorization", "Bearer " + Session.getAccessToken());
 
                     UserGoals userGoals = null;
                     if (goalsConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -327,8 +364,6 @@ public class GoalsLogic {
                                 userGoals.setDaily_carbs(g.optInt("daily_carbs"));
                                 userGoals.setDaily_protein(g.optInt("daily_protein"));
                                 userGoals.setDaily_fats(g.optInt("daily_fats"));
-                            } else {
-                                userGoals = null; // 👈 make sure this is outside the `if` but inside the try
                             }
                         }
                     }
@@ -336,6 +371,7 @@ public class GoalsLogic {
                     // Step 3: Fetch user_goal_history by user_id
                     String historyEndpoint = "/rest/v1/user_goal_history?user_id=eq." + userId + "&select=*";
                     HttpURLConnection historyConn = setupConnection(historyEndpoint, "GET");
+                    historyConn.setRequestProperty("Authorization", "Bearer " + Session.getAccessToken());
 
                     List<UserGoalHistory> historyList = new ArrayList<>();
                     if (historyConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -368,7 +404,4 @@ public class GoalsLogic {
         System.out.println("Failed to retrieve user goal data for: " + email);
         return null;
     }
-
-
-
 }

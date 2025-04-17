@@ -2,6 +2,7 @@ package org.aimacrosapp;
 
 public class Session {
     private static String email;
+    private static String accessToken;
 
     private static User currentUser;
     private static UserAccount currentUserAccount;
@@ -46,6 +47,14 @@ public class Session {
 
     public static String getEmail() {
         return email;
+    }
+
+    public static void setAccessToken(String token) {
+        accessToken = token;
+    }
+
+    public static String getAccessToken() {
+        return accessToken;
     }
 
     public static void clear() {

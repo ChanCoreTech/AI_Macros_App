@@ -54,6 +54,9 @@ import java.io.IOException;
             btnUpdateAccount = new JButton("Update Account");
             btnResetPassword = new JButton("Reset Password");
 
+            ToolTipManager.sharedInstance().setInitialDelay(100);
+            txtPassword.setToolTipText("Passwords are hidden for security purposes. If you forgot your password, click 'Reset Password' below.");
+
             //placeholders
 //            txtFirst.setText("John");
 //            txtLast.setText("Doe");

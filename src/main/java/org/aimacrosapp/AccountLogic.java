@@ -15,6 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class AccountLogic {
     //dotenv allows me to save keys in env file
@@ -22,36 +23,58 @@ public class AccountLogic {
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
 
+    // Hash password
+    public String hashPassword(String plainPassword) {
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+    }
+
+    // Check password
+    public boolean checkPassword(String plainPassword, String hashedPassword) {
+        return BCrypt.checkpw(plainPassword, hashedPassword);
+    }
+
     //method to establish HTTP connections (user insertion only)
     public HttpURLConnection establishDatabaseConnection(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs) throws IOException {
-        //endpoint is the url for the user table
+        // Endpoint for user insertion
         String endpoint = DB_URL + "/rest/v1/users";
         URL url = new URL(endpoint);
-        //open HTTP connection for API call
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        //connecting to supabase via API request to post data to user table
+        // Open HTTP connection
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Prefer", "return=representation");
         conn.setRequestProperty("apikey", DB_KEY);
+
+        // Include bearer token for authorization
+        String accessToken = Session.getAccessToken();
+        if (accessToken != null && !accessToken.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        }
+
         conn.setDoOutput(true);
         return conn;
     }
 
     //overloaded method to establish HTTP connections (user account insertion only)
     public HttpURLConnection establishDatabaseConnection(String email, String password, String nickname, String phone_number, String email_second) throws IOException {
-        //endpoint is the url for the user account table
+        // Endpoint for inserting into user_account table
         String endpoint = DB_URL + "/rest/v1/user_account";
         URL url = new URL(endpoint);
-        //open HTTP connection for API call
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        //connecting to supabase via API request to post data to user account table
+        // Open HTTP connection
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Prefer", "return=representation");
         conn.setRequestProperty("apikey", DB_KEY);
+
+        // ✅ Include bearer token from signed-in session
+        String accessToken = Session.getAccessToken();
+        if (accessToken != null && !accessToken.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        }
+
         conn.setDoOutput(true);
         return conn;
     }
@@ -59,14 +82,19 @@ public class AccountLogic {
     //overloaded method to establish HTTP connections (user update insertion only)
     public HttpURLConnection establishDatabaseConnection(UUID user_id, String field, String newValue) throws IOException {
         URL url = new URL(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
-        //open HTTP connection for API call
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-        //connecting to supabase via API request to post data to user account table
         conn.setRequestMethod("PATCH");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Prefer", "return=minimal");
         conn.setRequestProperty("apikey", DB_KEY);
+
+        // ✅ Include the access token for authenticated access
+        String accessToken = Session.getAccessToken();
+        if (accessToken != null && !accessToken.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+        }
+
         conn.setDoOutput(true);
         return conn;
     }
@@ -92,27 +120,45 @@ public class AccountLogic {
 
     // Method to get user id from email
     public String extractUserIdFromEmail(String email) throws IOException {
-        String endpoint = "/rest/v1/user_account?email=eq." + email + "&select=user_id";
-        HttpURLConnection conn = setupConnection(endpoint, "GET");
+        String accessToken = Session.getAccessToken();  // ← Get token from session
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Access token is missing. User may not be authenticated.");
+            return null;
+        }
 
-        int responseCode = conn.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            try (Scanner scanner = new Scanner(conn.getInputStream())) {
-                StringBuilder jsonResponse = new StringBuilder();
-                while (scanner.hasNext()) {
-                    jsonResponse.append(scanner.nextLine());
-                }
+        String endpoint = DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8) + "&select=user_id";
 
-                JSONArray jsonArray = new JSONArray(jsonResponse.toString());
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(endpoint))
+                .header("Authorization", "Bearer " + accessToken)
+                .header("apikey", DB_KEY)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JSONArray jsonArray = new JSONArray(response.body());
                 if (jsonArray.length() > 0) {
                     return jsonArray.getJSONObject(0).getString("user_id");
                 }
+            } else {
+                System.out.println("Failed to fetch user_id. Status: " + response.statusCode());
+                System.out.println(response.body());
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
 
         System.out.println("Failed to extract user_id for email: " + email);
         return null;
     }
+
 
     public UserAccount getUserAccountForSession() throws IOException {
         String email = Session.getEmail();
@@ -151,21 +197,26 @@ public class AccountLogic {
 
     public void updateDatabase(UUID userId, String field, String newValue) {
         try {
-            // Create HTTP client
+            String accessToken = Session.getAccessToken();  // Ensure token is available
+            if (accessToken == null || accessToken.isEmpty()) {
+                System.out.println("Access token missing. Cannot perform update.");
+                return;
+            }
+
             HttpClient client = HttpClient.newHttpClient();
 
-            // Construct the PATCH request body
+            // Construct JSON PATCH body
             String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
 
-            // Create HTTP PATCH request
+            // Build request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
-                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + accessToken)  // 🔐 Auth for RLS
                     .header("apikey", DB_KEY)
+                    .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
                     .build();
 
-            // Send request and get response
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200 || response.statusCode() == 204) {
@@ -174,11 +225,13 @@ public class AccountLogic {
                 System.out.println("Update failed: " + response.statusCode());
                 System.out.println(response.body());
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Database update failed.");
         }
     }
+
 
     //method to delete user from user table
     public static void deleteUser(UUID user_id) throws Exception {
@@ -233,39 +286,81 @@ public class AccountLogic {
     //method to update user account table
     public void updateDatabaseAccount(UUID user_account_id, String field, String newValue) {
         try {
-            // Create HTTP client
+            String accessToken = Session.getAccessToken();
+            if (accessToken == null || accessToken.isEmpty()) {
+                System.out.println("Access token missing. Cannot perform account update.");
+                return;
+            }
+
             HttpClient client = HttpClient.newHttpClient();
 
-            // Construct the PATCH request body
             String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
 
-            // Create HTTP PATCH request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/user_account?user_account_id=eq." + user_account_id))
-                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + accessToken)  // 🔐 Auth
                     .header("apikey", DB_KEY)
+                    .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
                     .build();
 
-            // Send request and get response
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200 || response.statusCode() == 204) {
-                System.out.println("Update successful!");
+                System.out.println("User account update successful!");
             } else {
-                System.out.println("Update failed: " + response.statusCode());
+                System.out.println("User account update failed: " + response.statusCode());
                 System.out.println(response.body());
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Database update failed.");
+            System.out.println("Account update failed due to exception.");
         }
     }
 
-    // Method to create a new user and insert into the database (bypassing authentication)
+    public String signUpUser(String email, String plainPassword) throws IOException, InterruptedException {
+        String signupUrl = DB_URL + "/auth/v1/signup";
+
+        String requestBody = String.format(
+                "{\"email\":\"%s\", \"password\":\"%s\"}",
+                email, plainPassword
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(signupUrl))
+                .header("Content-Type", "application/json")
+                .header("apikey", DB_KEY)
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println("Signing up with: [" + email + "]");
+        System.out.println("Sign-up JSON: " + requestBody);
+
+        if (response.statusCode() == 200 || response.statusCode() == 201) {
+            JSONObject json = new JSONObject(response.body());
+            String accessToken = json.getString("access_token");
+            String userId = json.getJSONObject("user").getString("id");
+
+            Session.setAccessToken(accessToken);
+            return userId;
+        } else {
+            System.out.println("Sign-up failed: " + response.body());
+            return null;
+        }
+    }
+
+    // Method to create a new user and insert into the database
     public String createUser(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs,
                              String body_type, String experience_level, String activity_level, String primary_goal) throws IOException {
-        // Prepare JSON input for insertion into user table
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Access token missing. Cannot create user.");
+            return null;
+        }
+
         String jsonInputString = String.format(
                 "{\"first_name\":\"%s\", \"last_name\":\"%s\", \"birth_date\":\"%s\", \"gender\":\"%s\", " +
                         "\"height_feet\":%d, \"height_inches\":%d, \"weight_lbs\":%d, " +
@@ -274,77 +369,76 @@ public class AccountLogic {
                 body_type, experience_level, activity_level, primary_goal
         );
 
-        //call to HTTP connection
         HttpURLConnection conn = establishDatabaseConnection(first_name, last_name, birth_date, gender, height_feet, height_inches, weight_lbs);
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
 
-        //json response
         try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-
-            // Get the response code from the API
+            os.write(jsonInputString.getBytes(StandardCharsets.UTF_8));
             int responseCode = conn.getResponseCode();
-
             System.out.println("Sending JSON: " + jsonInputString);
 
-            // Handle the response based on the status code
             if (responseCode == HttpURLConnection.HTTP_CREATED) {
-                // Success, print the response body
                 try (Scanner scanner = new Scanner(conn.getInputStream())) {
                     StringBuilder jsonResponse = new StringBuilder();
                     while (scanner.hasNext()) {
                         jsonResponse.append(scanner.nextLine());
                     }
                     System.out.println("Raw JSON response: " + jsonResponse.toString());
-                    String user_id = extractUserId(jsonResponse.toString());
-                    System.out.println("Creating user account with user_id: " + user_id);
-                    return user_id; // Return the user_id if successful
+                    return extractUserId(jsonResponse.toString());
                 }
             } else {
-                // Error handling
                 try (Scanner scanner = new Scanner(conn.getErrorStream())) {
                     while (scanner.hasNext()) {
                         System.out.println(scanner.nextLine());
                     }
                 }
-                return null; // Return null if user creation failed
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; // Catch any exceptions and return null for failure
+
+        return null;
     }
 
+
     // Method to create a new user account and insert into the database
-    public boolean createUserAccount(String email, String password, String nickname, String phone_number, String email_second, String user_id) throws IOException {
-        //if no user id provided to user account, show error msg
+    public boolean createUserAccount(String email, String password, String nickname,
+                                     String phone_number, String email_second, String user_id) throws IOException {
         if (user_id == null || user_id.isEmpty()) {
             System.out.println("Invalid user_id provided");
             return false;
         }
 
-        // Prepare JSON input for insertion into user account table
-        String jsonInputString = String.format(
-                "{\"email\":\"%s\", \"password\":\"%s\", \"nickname\":\"%s\", \"phone_number\":\"%s\", \"user_id\":\"%s\", \"email_second\":\"%s\"}",
-                email, password, nickname, phone_number, user_id, email_second
-        );
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Access token missing. Cannot create user account.");
+            return false;
+        }
 
-        //call to HTTP connection
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{")
+                .append("\"email\":\"").append(email).append("\",")
+                .append("\"password\":\"").append(hashedPassword).append("\",")
+                .append("\"nickname\":\"").append(nickname).append("\",")
+                .append("\"phone_number\":\"").append(phone_number).append("\",")
+                .append("\"user_id\":\"").append(user_id).append("\"");
+
+        if (email_second != null && !email_second.trim().isEmpty()) {
+            jsonBuilder.append(",\"email_second\":\"").append(email_second).append("\"");
+        }
+
+        jsonBuilder.append("}");
+
         HttpURLConnection conn = establishDatabaseConnection(email, password, nickname, phone_number, email_second);
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
 
-        //JSON code
         try (OutputStream os = conn.getOutputStream()) {
-            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-
-            // Get the response code from the API
+            os.write(jsonBuilder.toString().getBytes(StandardCharsets.UTF_8));
             int responseCode = conn.getResponseCode();
-            //System.out.println("Response Code: " + responseCode);
 
-            System.out.println("Sending JSON: " + jsonInputString);
-            // Handle the response based on the status code
             if (responseCode == HttpURLConnection.HTTP_CREATED) {
-                // Success
                 try (Scanner scanner = new Scanner(conn.getInputStream())) {
                     while (scanner.hasNext()) {
                         System.out.println(scanner.nextLine());
@@ -352,7 +446,6 @@ public class AccountLogic {
                 }
                 return true;
             } else {
-                // Error handling
                 try (Scanner scanner = new Scanner(conn.getErrorStream())) {
                     StringBuilder errorResponse = new StringBuilder();
                     while (scanner.hasNext()) {
@@ -362,12 +455,13 @@ public class AccountLogic {
                 }
                 return false;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            return false; // Catch any exceptions and return false
+            return false;
         }
     }
+
+
 
     //methods to update/edit user accounts
     public boolean updateUser(String email, String firstName, String lastName, String birthDate, String gender,
@@ -380,6 +474,12 @@ public class AccountLogic {
             return false;
         }
 
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Access token missing. Cannot update user.");
+            return false;
+        }
+
         JSONObject json = new JSONObject();
         json.put("first_name", firstName);
         json.put("last_name", lastName);
@@ -389,7 +489,6 @@ public class AccountLogic {
         json.put("height_inches", heightInches);
         json.put("weight_lbs", weightLbs);
 
-        // Optional fields
         if (bodyType != null && !bodyType.isEmpty()) json.put("body_type", bodyType);
         if (experienceLevel != null && !experienceLevel.isEmpty()) json.put("experience_level", experienceLevel);
         if (activityLevel != null && !activityLevel.isEmpty()) json.put("activity_level", activityLevel);
@@ -399,6 +498,7 @@ public class AccountLogic {
                 .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
                 .header("Content-Type", "application/json")
                 .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + accessToken)
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                 .build();
 
@@ -409,9 +509,16 @@ public class AccountLogic {
         return response.statusCode() == 204 || response.statusCode() == 200;
     }
 
+
     //method to update/edit user account
     public boolean updateUserAccount(String email, String password, String nickname,
                                      String phoneNumber, String emailSecond) throws IOException, InterruptedException {
+
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Access token missing. Cannot update user account.");
+            return false;
+        }
 
         JSONObject json = new JSONObject();
 
@@ -421,9 +528,10 @@ public class AccountLogic {
         if (emailSecond != null && !emailSecond.isEmpty()) json.put("email_second", emailSecond);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + email))
+                .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
                 .header("Content-Type", "application/json")
                 .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + accessToken)
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                 .build();
 
@@ -434,90 +542,100 @@ public class AccountLogic {
         return response.statusCode() == 204 || response.statusCode() == 200;
     }
 
+
     // Method to sign in a user
-    public boolean signIn(String email, String password) {
+    public boolean signIn(String email, String plainPassword) {
         try {
-            // Encode email to be URL-safe
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            // Step 1: Sign in using Supabase Auth REST API to get a JWT access token
+            String authUrl = DB_URL + "/auth/v1/token?grant_type=password";  // Update if needed
 
-            // Construct API request (adjust table name accordingly)
-            String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail;
+            // Construct JSON body for sign-in
+            String requestBody = String.format("{\"email\":\"%s\",\"password\":\"%s\"}", email, plainPassword);
 
-            // Print the URL for debugging
-            System.out.println("Requesting: " + requestUrl);
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(requestUrl))
+            HttpRequest authRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(authUrl))
                     .header("apikey", DB_KEY)
-                    .header("Authorization", "Bearer " + DB_KEY)
                     .header("Content-Type", "application/json")
-                    .GET()
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> authResponse = client.send(authRequest, HttpResponse.BodyHandlers.ofString());
 
-            // Print response status and body
-            System.out.println("Response Code: " + response.statusCode());
-            System.out.println("Response Body: " + response.body());
-
-            if (response.statusCode() == 200) {
-                JSONArray jsonArray = new JSONArray(response.body());
-                if (jsonArray.length() == 0) {
-                    System.out.println("User not found.");
-                    return false;
-                }
-
-                JSONObject userObject = jsonArray.getJSONObject(0);
-                String storedPassword = userObject.getString("password"); // Assuming plaintext, but should be hashed!
-
-                // Compare password (ideally, compare hashed values)
-                if (password.equals(storedPassword)) {
-                    System.out.println("Sign-in successful!");
-                    return true;
-                } else {
-                    System.out.println("Incorrect password.");
-                    return false;
-                }
-            } else {
-                System.out.println("Sign-in failed: " + response.statusCode());
+            if (authResponse.statusCode() != 200) {
+                System.out.println("Authentication failed: " + authResponse.body());
                 return false;
             }
+
+            // Step 2: Parse token from JSON response
+            JSONObject authJson = new JSONObject(authResponse.body());
+            String accessToken = authJson.getString("access_token");
+
+            // Optional: Store token for session use
+            Session.setAccessToken(accessToken);
+
+            // Step 3: Use the token to fetch user account info securely
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            String userRequestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail;
+
+            HttpRequest userRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(userRequestUrl))
+                    .header("Authorization", "Bearer " + accessToken)  // <- Use the token here
+                    .header("apikey", DB_KEY)
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> userResponse = client.send(userRequest, HttpResponse.BodyHandlers.ofString());
+
+            if (userResponse.statusCode() == 200) {
+                JSONArray jsonArray = new JSONArray(userResponse.body());
+                if (jsonArray.length() == 0) return false;
+
+                JSONObject userObject = jsonArray.getJSONObject(0);
+                String hashedPassword = userObject.getString("password");
+
+                // Step 4: Double-check password hash if needed
+                return checkPassword(plainPassword, hashedPassword);
+            } else {
+                System.out.println("Error fetching user data: " + userResponse.body());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
-    // Verification questions method before resetting password
+
     public boolean confirmAccount(String email, String nickname) {
         try {
-            // Encode email to be URL-safe
+            String accessToken = Session.getAccessToken();
+            if (accessToken == null || accessToken.isEmpty()) {
+                System.out.println("Access token missing. Cannot confirm account.");
+                return false;
+            }
+
+            // Encode query parameters
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            String encodedNickname = URLEncoder.encode(nickname, StandardCharsets.UTF_8);
+            String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail + "&nickname=eq." + encodedNickname;
 
-            // Construct API request (adjust table name accordingly)
-            String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail + "&nickname=eq." + URLEncoder.encode(nickname, StandardCharsets.UTF_8);
-
-            // Print the URL for debugging
             System.out.println("Requesting: " + requestUrl);
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(requestUrl))
-                    .header("apikey", DB_KEY)
-                    .header("Authorization", "Bearer " + DB_KEY)
                     .header("Content-Type", "application/json")
+                    .header("apikey", DB_KEY)
+                    .header("Authorization", "Bearer " + accessToken)
                     .GET()
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            // Print response status and body
             System.out.println("Response Code: " + response.statusCode());
             System.out.println("Response Body: " + response.body());
-            System.out.println("Encoded Email: " + encodedEmail);
-            System.out.println("Encoded Nickname: " + URLEncoder.encode(nickname, StandardCharsets.UTF_8));
-
 
             if (response.statusCode() == 200) {
                 JSONArray jsonArray = new JSONArray(response.body());
@@ -529,23 +647,24 @@ public class AccountLogic {
                 JSONObject userObject = jsonArray.getJSONObject(0);
                 String storedNickname = userObject.getString("nickname");
 
-                // Compare password (ideally, compare hashed values)
                 if (nickname.equals(storedNickname)) {
-                    System.out.println("successful!");
+                    System.out.println("Successful match.");
                     return true;
                 } else {
-                    System.out.println("Incorrect.");
+                    System.out.println("Nickname does not match.");
                     return false;
                 }
             } else {
-                System.out.println("failed: " + response.statusCode());
+                System.out.println("Failed: " + response.statusCode());
                 return false;
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+
 
     public boolean updatePassword(String email, String newPassword, String confirmPassword) {
         if (email == null || email.isEmpty()) {
@@ -559,15 +678,26 @@ public class AccountLogic {
         }
 
         try {
-            // Build the PATCH body
-            JSONObject json = new JSONObject();
-            json.put("password", newPassword);
+            // Get the token from session
+            String accessToken = Session.getAccessToken();
+            if (accessToken == null || accessToken.isEmpty()) {
+                System.out.println("Access token missing. Cannot update password.");
+                return false;
+            }
 
-            // PATCH request to update password based on email
+            // Hash the new password using BCrypt
+            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+            // Build the PATCH body with the hashed password
+            JSONObject json = new JSONObject();
+            json.put("password", hashedPassword);
+
+            // PATCH request to update password securely
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
                     .header("Content-Type", "application/json")
                     .header("apikey", DB_KEY)
+                    .header("Authorization", "Bearer " + accessToken) // ✅ Use user's token
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                     .build();
 
@@ -589,27 +719,32 @@ public class AccountLogic {
     }
 
 
+
     //setup connection to database for getUserAccountByEmail
     private HttpURLConnection setupConnection(String endpoint, String method) throws IOException {
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            throw new IOException("Access token is missing. User must be signed in.");
+        }
+
         URL url = new URL(DB_URL + endpoint);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("apikey", DB_KEY);
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken); // ✅ Use token
         conn.setDoOutput(true); // optional for GET
         return conn;
     }
 
+
     //get user account for session
     public UserAccount getUserAndAccountByEmail(String email) throws IOException {
-        // Step 1: Fetch user_account row by email
-        //new code
         email = email.trim();
         String endpoint = "/rest/v1/user_account?email=eq." + email + "&select=*";
         HttpURLConnection conn = setupConnection(endpoint, "GET");
 
         System.out.println("Querying email: [" + email + "]");
-
 
         int responseCode = conn.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
@@ -620,12 +755,11 @@ public class AccountLogic {
                 }
                 System.out.println("Raw Supabase response: " + jsonResponse.toString());
 
-
                 JSONArray jsonArray = new JSONArray(jsonResponse.toString());
                 if (jsonArray.length() > 0) {
                     JSONObject accountObj = jsonArray.getJSONObject(0);
 
-                    // Step 2: Parse user_account fields
+                    // Parse user_account fields
                     UserAccount account = new UserAccount();
                     account.setEmail(accountObj.getString("email"));
                     account.setPassword(accountObj.getString("password"));
@@ -635,7 +769,7 @@ public class AccountLogic {
 
                     String userId = accountObj.getString("user_id");
 
-                    // Step 3: Fetch corresponding user row
+                    // Fetch corresponding user record
                     String userEndpoint = "/rest/v1/users?user_id=eq." + userId + "&select=*";
                     HttpURLConnection userConn = setupConnection(userEndpoint, "GET");
 
@@ -663,13 +797,11 @@ public class AccountLogic {
                                 user.setActivity_level(userObj.optString("activity_level", null));
                                 user.setPrimary_goal(userObj.optString("primary_goal", null));
 
-                                // Step 4: Attach user to account
+                                // Attach to account
                                 account.setUser(user);
-
                             }
                         }
                     }
-
 
                     return account;
                 }
