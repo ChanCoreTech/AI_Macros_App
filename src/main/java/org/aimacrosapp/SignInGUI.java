@@ -72,7 +72,6 @@ public class SignInGUI extends JFrame{
             }
         });
 
-        // Login button click event
         btnLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -80,54 +79,47 @@ public class SignInGUI extends JFrame{
                 String password = new String(txtPassword.getPassword());
 
                 AccountLogic accountLogic = new AccountLogic();
-                boolean isAuthenticated = accountLogic.signIn(email, password);
 
-                // Proceed only if authentication is successful
-                if (isAuthenticated) {
-                    //create User Account
-                    UserAccount userAccount = new UserAccount();
-                    //static Session class used to get email, identifying user
-                    Session.setEmail(email);
-                    try {
-                        //get user information from user and user_account
-                        userAccount = accountLogic.getUserAndAccountByEmail(email);
-                        //get user
-                        User user = userAccount.getUser();
-                            //set email
-                            Session.setEmail(email);
-                            //set user
+                try {
+                    // 🔐 Sign in and get token immediately
+                    boolean isAuthenticated = accountLogic.signIn(email, password);
+
+                    if (isAuthenticated) {
+                        Session.setEmail(email);
+
+                        // Fetch user + account info
+                        UserAccount userAccount = accountLogic.getUserAndAccountByEmail(email);
+
+                        if (userAccount != null && userAccount.getUser() != null) {
+                            User user = userAccount.getUser();
                             Session.setCurrentUser(user);
-                            //set User object in session
                             Session.setCurrentUserAccount(userAccount);
-                            int option = JOptionPane.showOptionDialog(
-                                    panel1,
-                                    "Login successful!",
-                                    "Message",
-                                    JOptionPane.DEFAULT_OPTION,
-                                    JOptionPane.INFORMATION_MESSAGE,
-                                    null,
-                                    new Object[]{"OK"},
-                                    "OK"
-                            );
 
-                            if (option == 0 || option == JOptionPane.CLOSED_OPTION) {
-                                new DashboardGUI();
-                                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-                                if (topFrame != null) {
-                                    topFrame.dispose();
-                                }
-                            }
-                        else{
-                            JOptionPane.showMessageDialog(panel1, "User not found.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(panel1, "Login successful!");
+
+                            new DashboardGUI(); // 🚀 Navigate to dashboard
+                            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                            if (topFrame != null) topFrame.dispose();
+                        } else {
+                            JOptionPane.showMessageDialog(panel1,
+                                    "Login successful but user data is missing.\nPlease recreate your profile.",
+                                    "Data Missing", JOptionPane.WARNING_MESSAGE);
                         }
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
+                    } else {
+                        JOptionPane.showMessageDialog(panel1, "Invalid email or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
                     }
-                } else {
-                    JOptionPane.showMessageDialog(panel1, "Invalid email or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(panel1, "An error occurred during login.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
+
+
+
+
+
 
         //forgot password click event
         btnForgot.addActionListener(new ActionListener() {

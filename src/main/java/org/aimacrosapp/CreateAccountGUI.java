@@ -115,6 +115,7 @@ public class CreateAccountGUI extends JFrame {
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
 
+                    // Create objects
                     User user = new User(first_name, last_name, birth_date, gender,
                             Integer.parseInt(height_feet), Integer.parseInt(height_inches),
                             Integer.parseInt(weight_lbs), body_type, experienceLevel, activity_goal, primary_goal);
@@ -123,23 +124,34 @@ public class CreateAccountGUI extends JFrame {
                     AccountLogic accountLogic = new AccountLogic();
 
                     try {
-                        // 🔐 Step 1: Sign up using Supabase Auth (this also sets access token in Session)
+                        // Step 1: Sign up with Supabase Auth and get user_id + token
                         String userId = accountLogic.signUpUser(email, password);
 
                         if (userId != null) {
-                            // ✅ Step 2: Insert into user table
-                            String userTableId = accountLogic.createUser(user.getFirst_name(), user.getLast_name(), user.getBirth_date(), user.getGender(),
-                                    user.getHeight_feet(), user.getHeight_inches(), user.getWeight_lbs(), user.getBody_type(),
-                                    user.getExperience_level(), user.getActivity_level(), user.getPrimary_goal());
+                            // Step 2: Insert into users table using userId
+                            String userTableId = accountLogic.createUser(
+                                    userId, // 💡 this must match auth.uid() for RLS
+                                    user.getFirst_name(),
+                                    user.getLast_name(),
+                                    user.getBirth_date(),
+                                    user.getGender(),
+                                    user.getHeight_feet(),
+                                    user.getHeight_inches(),
+                                    user.getWeight_lbs(),
+                                    user.getBody_type(),
+                                    user.getExperience_level(),
+                                    user.getActivity_level(),
+                                    user.getPrimary_goal()
+                            );
 
-                            // ✅ Step 3: Insert into user_account table
+                            // Step 3: Insert into user_account table
                             if (userTableId != null) {
                                 boolean userAccountCreated = accountLogic.createUserAccount(
-                                        userAccount.getEmail(),
+                                        email,
                                         password,
-                                        userAccount.getNickname(),
-                                        userAccount.getPhone_number(),
-                                        userAccount.getEmail_second(),
+                                        nickname,
+                                        phone_number,
+                                        email_second,
                                         userTableId
                                 );
 
@@ -147,16 +159,13 @@ public class CreateAccountGUI extends JFrame {
                                     JOptionPane.showMessageDialog(panel1, "Thanks! Your account has been created!");
                                     new SignInGUI();
                                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-                                    if (topFrame != null) {
-                                        topFrame.dispose();
-                                    }
+                                    if (topFrame != null) topFrame.dispose();
                                     return;
                                 }
                             }
                         }
 
-                        // ❌ If any part fails
-                        JOptionPane.showMessageDialog(panel1, "Failed to create account. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(panel1, "Account creation failed. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
 
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -164,6 +173,10 @@ public class CreateAccountGUI extends JFrame {
                     }
                 }
             });
+
+
+
+
 
 
             //resize all elements
