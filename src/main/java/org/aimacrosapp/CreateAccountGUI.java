@@ -7,9 +7,11 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import org.mindrot.jbcrypt.BCrypt;
 
+//IF YOU HAVE TIME, ADD SECURITY QUESTIONS
+
 public class CreateAccountGUI extends JFrame {
     private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
-        lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
+        lblEmail, lblPassword, lblConfirmPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
 
     private JTextField txtFirst = new JTextField(15),
             txtLast = new JTextField(15),
@@ -23,6 +25,7 @@ public class CreateAccountGUI extends JFrame {
             txtEmailSecond = new JTextField(15);
 
     private JPasswordField txtPassword = new JPasswordField(15);
+    private JPasswordField txtConfirmPassword = new JPasswordField(15);
 
     private JComboBox<String> comboGender, comboBodyType, comboExperience, comboActivity, comboPrimary;
 
@@ -48,6 +51,7 @@ public class CreateAccountGUI extends JFrame {
             lblPrimary = new JLabel("Primary Goal:");
             lblEmail = new JLabel("Email:");
             lblPassword = new JLabel("Password:");
+            lblConfirmPassword = new JLabel("Confirm Password:");
             lblNickname = new JLabel("Nickname:");
             lblPhoneNumber = new JLabel("Phone Number:");
             lblEmailSecond = new JLabel("Secondary Email:");
@@ -111,9 +115,38 @@ public class CreateAccountGUI extends JFrame {
                     String primary_goal = (String) comboPrimary.getSelectedItem();
                     String email = txtEmail.getText().trim();
                     String password = new String(txtPassword.getPassword());
+                    String passwordConfirm = new String(txtConfirmPassword.getPassword());
                     String nickname = txtNickname.getText();
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
+
+                    StringBuilder errors = new StringBuilder();
+
+                    // === VALIDATION SECTION ===
+                    if (!first_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid first name\n");
+                    if (!last_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid last name\n");
+                    if (!birth_date.matches("^(\\d{4}/\\d{2}/\\d{2})|(\\d{2}/\\d{2}/\\d{4})|(\\d{2}-\\d{2}-\\d{4})|(\\d{4}-\\d{2}-\\d{2})$")) {
+                        errors.append("- Invalid birth date format (use YYYY/MM/DD, MM/DD/YYYY, MM-DD-YYYY, or YYYY-MM-DD)\n");
+                    }
+                    if (gender == null || gender.trim().isEmpty()) errors.append("- Gender is required\n");
+                    if (!height_feet.matches("^[1-9]$")) errors.append("- Height (feet) must be between 1-9\n");
+                    if (!height_inches.matches("^(0|[1-9]|1[01])$")) errors.append("- Height (inches) must be 0-11\n");
+                    if (!weight_lbs.matches("^[1-9][0-9]{1,2}$")) errors.append("- Weight must be between 10-999\n");
+                    if (!email.matches("^[\\w.-]+@[\\w-]+\\.[a-zA-Z]{2,}$")) errors.append("- Email invalid. Use format: user@example.com\n");
+                    if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{6,}$"))
+                        errors.append("- Password must be 6+ characters with at least one uppercase, lowercase, number, and special character\n");
+                    if (!password.equals(passwordConfirm)) errors.append("- Passwords do not match! Please re-enter password and the confirmed password\n");
+                    if (!nickname.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$"))
+                        errors.append("- Nickname must be at least 6 characters and include letters and numbers\n");
+                    if (!phone_number.matches("^\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$"))
+                        errors.append("- Invalid phone number format (Use a format like: 111-111-1111 OR 1111111111)\n");
+                    if (!email_second.isEmpty() && !email_second.matches("^[\\w.-]+@[\\w-]+\\.[a-zA-Z]{2,}$"))
+                        errors.append("- Secondary email is not valid. Use format: user@example.com\n");
+
+                    if (errors.length() > 0) {
+                        JOptionPane.showMessageDialog(panel1, "Please fix the following issues:\n\n" + errors.toString(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
                     // Create objects
                     User user = new User(first_name, last_name, birth_date, gender,
@@ -130,7 +163,7 @@ public class CreateAccountGUI extends JFrame {
                         if (userId != null) {
                             // Step 2: Insert into users table using userId
                             String userTableId = accountLogic.createUser(
-                                    userId, // 💡 this must match auth.uid() for RLS
+                                    userId,
                                     user.getFirst_name(),
                                     user.getLast_name(),
                                     user.getBirth_date(),
@@ -174,11 +207,6 @@ public class CreateAccountGUI extends JFrame {
                 }
             });
 
-
-
-
-
-
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
@@ -198,6 +226,7 @@ public class CreateAccountGUI extends JFrame {
             lblPrimary.setFont(mainFont);
             lblEmail.setFont(mainFont);
             lblPassword.setFont(mainFont);
+            lblConfirmPassword.setFont(mainFont);
             lblNickname.setFont(mainFont);
             lblPhoneNumber.setFont(mainFont);
             lblEmailSecond.setFont(mainFont);
@@ -213,6 +242,7 @@ public class CreateAccountGUI extends JFrame {
             txtWeight.setFont(mainFont);
             txtEmail.setFont(mainFont);
             txtPassword.setFont(mainFont);
+            txtConfirmPassword.setFont(mainFont);
             txtNickname.setFont(mainFont);
             txtPhoneNumber.setFont(mainFont);
             txtEmailSecond.setFont(mainFont);
@@ -277,11 +307,11 @@ public class CreateAccountGUI extends JFrame {
             gbc.gridx = 1;
             panel1.add(txtBirth, gbc);
 
-            //Nickname
+            //Confirm Password
             gbc.gridx = 2;
-            panel1.add(lblNickname, gbc);
+            panel1.add(lblConfirmPassword, gbc);
             gbc.gridx = 3;
-            panel1.add(txtNickname, gbc);
+            panel1.add(txtConfirmPassword, gbc);
 
             // Gender
             gbc.gridx = 0;
@@ -290,11 +320,11 @@ public class CreateAccountGUI extends JFrame {
             gbc.gridx = 1;
             panel1.add(comboGender, gbc);
 
-            //Phone Number
+            //Nickname
             gbc.gridx = 2;
-            panel1.add(lblPhoneNumber, gbc);
+            panel1.add(lblNickname, gbc);
             gbc.gridx = 3;
-            panel1.add(txtPhoneNumber, gbc);
+            panel1.add(txtNickname, gbc);
 
             // Height Feet
             gbc.gridx = 0;
@@ -303,11 +333,11 @@ public class CreateAccountGUI extends JFrame {
             gbc.gridx = 1;
             panel1.add(txtHeightFeet, gbc);
 
-            //Secondary Email
+            //Phone Number
             gbc.gridx = 2;
-            panel1.add(lblEmailSecond, gbc);
+            panel1.add(lblPhoneNumber, gbc);
             gbc.gridx = 3;
-            panel1.add(txtEmailSecond, gbc);
+            panel1.add(txtPhoneNumber, gbc);
 
             // Height Inches
             gbc.gridx = 0;
@@ -315,6 +345,12 @@ public class CreateAccountGUI extends JFrame {
             panel1.add(lblHeightInches, gbc);
             gbc.gridx = 1;
             panel1.add(txtHeightInches, gbc);
+
+            //Secondary Email
+            gbc.gridx = 2;
+            panel1.add(lblEmailSecond, gbc);
+            gbc.gridx = 3;
+            panel1.add(txtEmailSecond, gbc);
 
             // Weight
             gbc.gridx = 0;

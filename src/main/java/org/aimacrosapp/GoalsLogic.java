@@ -18,9 +18,13 @@ import java.util.List;
 import java.util.Scanner;
 
 public class GoalsLogic {
-    private static final Dotenv dotenv = Dotenv.load();
+    private static final Dotenv dotenv = Dotenv.configure()
+            .filename(".env")
+            .load(); // Load from classpath (resources folder)
+
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
+
 
     private String cachedUserId = null;
 
@@ -216,7 +220,7 @@ public class GoalsLogic {
                 .uri(URI.create(DB_URL + "/rest/v1/user_goal_history?user_id=eq." + user_id + "&goal_date=eq." + goal_date))
                 .header("Content-Type", "application/json")
                 .header("apikey", DB_KEY)
-                .header("Authorization", "Bearer " + Session.getAccessToken()) // 🔐 Add token
+                .header("Authorization", "Bearer " + Session.getAccessToken())
                 .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
                 .build();
 

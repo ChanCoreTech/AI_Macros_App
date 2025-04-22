@@ -24,9 +24,19 @@ public class GoalHistoryGUI extends JFrame {
         btnBack.setContentAreaFilled(false);
         btnBack.setFocusPainted(false);
         btnBack.setBounds(10, 10, 50, 50);
-        btnBack.addActionListener(e -> {
-            dispose();
-            new DashboardGUI();
+
+        //back button click event
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //go back to Dashboard
+                new DashboardGUI();
+                //close current page
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                if (topFrame != null) {
+                    topFrame.dispose();
+                }
+            }
         });
 
         // Log Out
@@ -114,6 +124,7 @@ public class GoalHistoryGUI extends JFrame {
                         "Yes"
                 );
                 if (option == 0) {
+                    Session.clear();
                     new SignInGUI();
                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                     if (topFrame != null) {
@@ -131,6 +142,95 @@ public class GoalHistoryGUI extends JFrame {
         btnSubmitUpdates.addActionListener(e -> {
             if (goalTable.isEditing()) goalTable.getCellEditor().stopCellEditing();
 
+            StringBuilder errors = new StringBuilder();
+            boolean hasErrors = false;
+
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String date = model.getValueAt(i, 0).toString().trim();
+                String workout = model.getValueAt(i, 1).toString().trim().toLowerCase();
+                String calories = model.getValueAt(i, 2).toString().trim();
+                String carbs = model.getValueAt(i, 3).toString().trim();
+                String protein = model.getValueAt(i, 4).toString().trim();
+                String fats = model.getValueAt(i, 5).toString().trim();
+
+                // Validate date
+                if (!date.matches("^(\\d{4}[-/]\\d{2}[-/]\\d{2})|(\\d{2}[-/]\\d{2}[-/]\\d{4})$")) {
+                    errors.append("- Row ").append(i + 1).append(": Invalid date format.\n");
+                    hasErrors = true;
+                }
+
+                // Validate workout
+                if (!workout.equals("true") && !workout.equals("false")) {
+                    errors.append("- Row ").append(i + 1).append(": Workout must be true or false.\n");
+                    hasErrors = true;
+                }
+
+                // Validate Calories: optional or 0–10000
+                // === CALORIES ===
+                if (!calories.isEmpty()) {
+                    try {
+                        int calVal = Integer.parseInt(calories);
+                        if (calVal < 0 || calVal > 10000) {
+                            errors.append("- Row ").append(i + 1).append(": Calories must be between 0 and 10000.\n");
+                            hasErrors = true;
+                        }
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Row ").append(i + 1).append(": Calories must be a valid number (0–10000).\n");
+                        hasErrors = true;
+                    }
+                }
+
+                // === CARBS ===
+                if (!carbs.isEmpty()) {
+                    try {
+                        int carbVal = Integer.parseInt(carbs);
+                        if (carbVal < 0 || carbVal > 20000) {
+                            errors.append("- Row ").append(i + 1).append(": Carbs must be between 0 and 20000.\n");
+                            hasErrors = true;
+                        }
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Row ").append(i + 1).append(": Carbs must be a valid number (0–20000).\n");
+                        hasErrors = true;
+                    }
+                }
+
+                // === PROTEIN ===
+                if (!protein.isEmpty()) {
+                    try {
+                        int proteinVal = Integer.parseInt(protein);
+                        if (proteinVal < 0 || proteinVal > 1000) {
+                            errors.append("- Row ").append(i + 1).append(": Protein must be between 0 and 1000.\n");
+                            hasErrors = true;
+                        }
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Row ").append(i + 1).append(": Protein must be a valid number (0–1000).\n");
+                        hasErrors = true;
+                    }
+                }
+
+                // === FATS ===
+                if (!fats.isEmpty()) {
+                    try {
+                        int fatsVal = Integer.parseInt(fats);
+                        if (fatsVal < 0 || fatsVal > 20000) {
+                            errors.append("- Row ").append(i + 1).append(": Fats must be between 0 and 20000.\n");
+                            hasErrors = true;
+                        }
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Row ").append(i + 1).append(": Fats must be a valid number (0–20000).\n");
+                        hasErrors = true;
+                    }
+                }
+
+            }
+
+            if (hasErrors) {
+                JOptionPane.showMessageDialog(this, errors.toString(), "Validation Errors", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // If valid, submit all rows
+            //String email = Session.getEmail();
             for (int i = 0; i < model.getRowCount(); i++) {
                 try {
                     logic.upsertGoalHistory(
@@ -149,6 +249,7 @@ public class GoalHistoryGUI extends JFrame {
 
             JOptionPane.showMessageDialog(this, "Updates submitted successfully!");
         });
+
 
         // === MAIN PANEL ===
         panel1 = new JPanel(new GridBagLayout());

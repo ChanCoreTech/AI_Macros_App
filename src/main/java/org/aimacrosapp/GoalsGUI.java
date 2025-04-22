@@ -148,6 +148,7 @@ public class GoalsGUI extends JFrame {
                         "Yes"
                 );
                 if (option == 0) {
+                    Session.clear();
                     new SignInGUI();
                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                     if (topFrame != null) {
@@ -165,51 +166,134 @@ public class GoalsGUI extends JFrame {
                 GoalsLogic goalsLogic = new GoalsLogic();
 
                 String workouts_per = (String) comboWorkoutsPer.getSelectedItem();
-                String calories = txtCalories.getText();
-                String carbs = txtCarbs.getText();
-                String protein = txtProtein.getText();
-                String fats = txtFats.getText();
+                String calories = txtCalories.getText().trim();
+                String carbs = txtCarbs.getText().trim();
+                String protein = txtProtein.getText().trim();
+                String fats = txtFats.getText().trim();
 
-                String email = Session.getEmail();
-                System.out.println("Inserting goals for user with email address: " + email);
-                try {
-                    //call method to insert or update goals for user
-                    goalsLogic.upsertGoals(workouts_per, calories, carbs, protein, fats, email);
-                } catch (IOException | InterruptedException ex) {
-                    throw new RuntimeException(ex);
+                StringBuilder errors = new StringBuilder();
+
+                if (!calories.isEmpty()) {
+                    try {
+                        int cal = Integer.parseInt(calories);
+                        if (cal < 0 || cal > 10000) errors.append("- Calories must be between 0 and 10000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Calories must be a number\n");
+                    }
                 }
 
-                JOptionPane.showMessageDialog(panel1, "Your goals have been updated! Thanks!");
+                if (!carbs.isEmpty()) {
+                    try {
+                        int carb = Integer.parseInt(carbs);
+                        if (carb < 0 || carb > 20000) errors.append("- Carbs must be between 0 and 20000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Carbs must be a number\n");
+                    }
+                }
+
+                if (!protein.isEmpty()) {
+                    try {
+                        int prot = Integer.parseInt(protein);
+                        if (prot < 0 || prot > 1000) errors.append("- Protein must be between 0 and 1000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Protein must be a number\n");
+                    }
+                }
+
+                if (!fats.isEmpty()) {
+                    try {
+                        int fat = Integer.parseInt(fats);
+                        if (fat < 0 || fat > 20000) errors.append("- Fats must be between 0 and 20000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Fats must be a number\n");
+                    }
+                }
+
+                if (errors.length() > 0) {
+                    JOptionPane.showMessageDialog(panel1, errors.toString(), "Validation Errors", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    goalsLogic.upsertGoals(workouts_per, calories, carbs, protein, fats, Session.getEmail());
+                    JOptionPane.showMessageDialog(panel1, "Your goals have been updated! Thanks!");
+                } catch (IOException | InterruptedException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(panel1, "Failed to update goals.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
+
 
         btnUpdate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 GoalsLogic goalsLogic = new GoalsLogic();
 
-                String today_date = txtTodayDate.getText();
+                String today_date = txtTodayDate.getText().trim();
                 String today_workout = (String) comboTodayWorkout.getSelectedItem();
-                String todayCalories = txtTodayCalories.getText();
-                String todayCarbs = txtTodayCarbs.getText();
-                String todayProtein = txtTodayProtein.getText();
-                String todayFats = txtTodayFats.getText();
+                String todayCalories = txtTodayCalories.getText().trim();
+                String todayCarbs = txtTodayCarbs.getText().trim();
+                String todayProtein = txtTodayProtein.getText().trim();
+                String todayFats = txtTodayFats.getText().trim();
 
-                //get email of current user
-                String email = Session.getEmail();
-                System.out.println("Inserting goal history for user with email address: " + email);
-                try {
-                    //call method to insert new day goals
-                    goalsLogic.upsertGoalHistory(today_date, today_workout, todayCalories, todayCarbs, todayProtein, todayFats, email);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
+                StringBuilder errors = new StringBuilder();
+
+                if (!today_date.matches("^(\\d{4}[-/]\\d{2}[-/]\\d{2})|(\\d{2}[-/]\\d{2}[-/]\\d{4})$")) {
+                    errors.append("- Invalid date format (use MM/DD/YYYY, YYYY/MM/DD, MM-DD-YYYY, or YYYY-MM-DD)\n");
                 }
 
-                JOptionPane.showMessageDialog(panel1, "Your daily goal progress has been updated! Thanks!");
+                if (!todayCalories.isEmpty()) {
+                    try {
+                        int cal = Integer.parseInt(todayCalories);
+                        if (cal < 0 || cal > 10000) errors.append("- Calories must be between 0 and 10000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Calories must be a number\n");
+                    }
+                }
+
+                if (!todayCarbs.isEmpty()) {
+                    try {
+                        int carb = Integer.parseInt(todayCarbs);
+                        if (carb < 0 || carb > 20000) errors.append("- Carbs must be between 0 and 20000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Carbs must be a number\n");
+                    }
+                }
+
+                if (!todayProtein.isEmpty()) {
+                    try {
+                        int prot = Integer.parseInt(todayProtein);
+                        if (prot < 0 || prot > 1000) errors.append("- Protein must be between 0 and 1000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Protein must be a number\n");
+                    }
+                }
+
+                if (!todayFats.isEmpty()) {
+                    try {
+                        int fat = Integer.parseInt(todayFats);
+                        if (fat < 0 || fat > 20000) errors.append("- Fats must be between 0 and 20000\n");
+                    } catch (NumberFormatException ex) {
+                        errors.append("- Fats must be a number\n");
+                    }
+                }
+
+                if (errors.length() > 0) {
+                    JOptionPane.showMessageDialog(panel1, errors.toString(), "Validation Errors", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                try {
+                    goalsLogic.upsertGoalHistory(today_date, today_workout, todayCalories, todayCarbs, todayProtein, todayFats, Session.getEmail());
+                    JOptionPane.showMessageDialog(panel1, "Your daily goal progress has been updated! Thanks!");
+                } catch (IOException | InterruptedException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(panel1, "Failed to update today's goals.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
+
 
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);

@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="v1-Macros-&amp;-Fitness-with-AI-Assistant:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/v1_Macros___Fitness_with_AI_Assistant_jar</output-path>
+    <root id="archive" name="Metz_AI_Macros_App.jar">
+      <element id="module-output" name="Metz_AI_Macros_App" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/mindrot/jbcrypt/0.4/jbcrypt-0.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/json/json/20250107/json-20250107.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3.0.0/dotenv-java-3.0.0.jar" path-in-jar="/" />
+      <element id="dir-copy" path="$PROJECT_DIR$/src/main/resources" />
+    </root>
+  </artifact>
+</component>

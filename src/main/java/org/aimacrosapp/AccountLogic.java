@@ -19,9 +19,14 @@ import org.mindrot.jbcrypt.BCrypt;
 
 public class AccountLogic {
     //dotenv allows me to save keys in env file
-    private static final Dotenv dotenv = Dotenv.load();
+    private static final Dotenv dotenv = Dotenv.configure()
+            .filename(".env")
+            .load(); // Load from classpath (resources folder)
+
+
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
+
 
     // Hash password
     public String hashPassword(String plainPassword) {
@@ -211,7 +216,7 @@ public class AccountLogic {
             // Build request
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
-                    .header("Authorization", "Bearer " + accessToken)  // 🔐 Auth for RLS
+                    .header("Authorization", "Bearer " + accessToken)
                     .header("apikey", DB_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
@@ -298,7 +303,7 @@ public class AccountLogic {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/user_account?user_account_id=eq." + user_account_id))
-                    .header("Authorization", "Bearer " + accessToken)  // 🔐 Auth
+                    .header("Authorization", "Bearer " + accessToken)
                     .header("apikey", DB_KEY)
                     .header("Content-Type", "application/json")
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
@@ -408,11 +413,6 @@ public class AccountLogic {
         return null;
     }
 
-
-
-
-
-
     // Method to create a new user account and insert into the database
     public boolean createUserAccount(String email, String password, String nickname,
                                      String phone_number, String email_second, String user_id) throws IOException {
@@ -465,10 +465,6 @@ public class AccountLogic {
             return false;
         }
     }
-
-
-
-
 
     //methods to update/edit user accounts
     public boolean updateUser(String email, String firstName, String lastName, String birthDate, String gender,
@@ -672,7 +668,7 @@ public class AccountLogic {
                     .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
                     .header("Content-Type", "application/json")
                     .header("apikey", DB_KEY)
-                    .header("Authorization", "Bearer " + accessToken) // ✅ Use user's token
+                    .header("Authorization", "Bearer " + accessToken)
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                     .build();
 
@@ -707,7 +703,7 @@ public class AccountLogic {
         conn.setRequestMethod(method);
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("apikey", DB_KEY);
-        conn.setRequestProperty("Authorization", "Bearer " + accessToken); // ✅ Use token
+        conn.setRequestProperty("Authorization", "Bearer " + accessToken);
         conn.setDoOutput(true); // optional for GET
         return conn;
     }

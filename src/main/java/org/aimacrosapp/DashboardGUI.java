@@ -134,6 +134,7 @@ public class DashboardGUI extends JFrame {
                         "Yes"
                 );
                 if (option == 0) {
+                    Session.clear();
                     new SignInGUI();
                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                     if (topFrame != null) {
@@ -363,7 +364,14 @@ public class DashboardGUI extends JFrame {
 
     private ImageIcon getScaledIcon(String path, int width, int height) {
         try {
-            ImageIcon originalIcon = new ImageIcon(getClass().getResource(path));
+            System.out.println("🧪 Attempting to load: " + path);
+            java.net.URL resource = getClass().getResource(path);
+            if (resource == null) {
+                System.err.println("❌ Resource not found: " + path);
+                return null;
+            }
+
+            ImageIcon originalIcon = new ImageIcon(resource);
             Image originalImage = originalIcon.getImage();
 
             BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -376,8 +384,10 @@ public class DashboardGUI extends JFrame {
 
             return new ImageIcon(scaledImage);
         } catch (Exception e) {
-            System.err.println("Failed to load or scale image: " + path);
+            System.err.println("❌ Failed to load or scale image: " + path);
+            e.printStackTrace();
             return null;
         }
     }
+
 }

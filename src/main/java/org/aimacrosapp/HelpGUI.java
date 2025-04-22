@@ -158,9 +158,18 @@ public class HelpGUI extends JFrame {
 
         setVisible(true);
 
-        btnBack.addActionListener(e -> {
-            dispose();
-            new DashboardGUI();
+        //back button click event
+        btnBack.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //go back to Dashboard
+                new DashboardGUI();
+                //close current page
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(leftPanel);
+                if (topFrame != null) {
+                    topFrame.dispose();
+                }
+            }
         });
 
         btnLogout.addActionListener(new ActionListener() {
@@ -177,6 +186,7 @@ public class HelpGUI extends JFrame {
                         "Yes"
                 );
                 if (option == 0) {
+                    Session.clear();
                     new SignInGUI();
                     JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(leftPanel);
                     if (topFrame != null) {

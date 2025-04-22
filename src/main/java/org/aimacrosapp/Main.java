@@ -5,12 +5,25 @@ import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+
+        //• ADD SESSIONS
+        //• TOUCH UP CHATBOT
+        //• ADD LOGO TO EVERY PAGE TASKBAR
+        // • ADD FORGOT PASSWORD VALIDATION AND EXTRA QUESTIONS
+        //• ADD HOVER TEXT AND TOUCH UP GUI
+
+        //• DO WORD AND POWERPOINT
+
+        // • DON'T EXPOSE ENV
+        // • CHANGE COMMENTS
+        // • RE-WORD LABELS
+        // • IMAGE RESOLUTION
+
+        // • TEST .JAR
+
         //try {
             //object for AccountLogic class
-            AccountLogic accountLogic = new AccountLogic();
-
-            //object for BotLogic class
-            BotLogic botLogic = new BotLogic();
+            //AccountLogic accountLogic = new AccountLogic();
 
             //object for SignInGUI class
             //SignInGUI gui = new SignInGUI();

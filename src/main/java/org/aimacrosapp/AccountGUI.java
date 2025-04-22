@@ -116,6 +116,7 @@ import java.io.IOException;
                     txtNickname.setText(account.getNickname());
                     txtPhoneNumber.setText(account.getPhone_number());
                     txtEmailSecond.setText(account.getEmail_second());
+                    txtEmailSecond.setText(account.getEmail_second());
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -167,6 +168,7 @@ import java.io.IOException;
                             "Yes"
                     );
                     if (option == 0) {
+                        Session.clear();
                         new SignInGUI();
                         JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
                         if (topFrame != null) {
@@ -199,6 +201,34 @@ import java.io.IOException;
                     String nickname = txtNickname.getText();
                     String phone_number = txtPhoneNumber.getText();
                     String email_second = txtEmailSecond.getText();
+
+                    StringBuilder errors = new StringBuilder();
+
+                    // === VALIDATION SECTION ===
+                    if (!first_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid first name\n");
+                    if (!last_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid last name\n");
+                    if (!birth_date.matches("^(\\d{4}/\\d{2}/\\d{2})|(\\d{2}/\\d{2}/\\d{4})|(\\d{2}-\\d{2}-\\d{4})|(\\d{4}-\\d{2}-\\d{2})$")) {
+                        errors.append("- Invalid birth date format (use YYYY/MM/DD, MM/DD/YYYY, MM-DD-YYYY, or YYYY-MM-DD)\n");
+                    }
+                    if (gender == null || gender.trim().isEmpty()) errors.append("- Gender is required\n");
+                    if (!height_feet_str.matches("^[1-9]$")) errors.append("- Height (feet) must be between 1-9\n");
+                    if (!height_inches_str.matches("^(0|[1-9]|1[01])$")) errors.append("- Height (inches) must be 0-11\n");
+                    if (!weight_lbs_str.matches("^[1-9][0-9]{1,2}$")) errors.append("- Weight must be between 10-999\n");
+                    if (!email.matches("^[\\w.-]+@[\\w-]+\\.[a-zA-Z]{2,}$")) errors.append("- Email invalid. Use format: user@example.com\n");
+                    if (!password.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{6,}$"))
+                        errors.append("- Password must be 6+ characters with at least one uppercase, lowercase, number, and special character\n");
+                    if (!nickname.matches("^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$"))
+                        errors.append("- Nickname must be at least 6 characters and include letters and numbers\n");
+                    if (!phone_number.matches("^\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}$"))
+                        errors.append("- Invalid phone number format (Use a format like: 111-111-1111 OR 1111111111)\n");
+                    if (!email_second.isEmpty() && !email_second.matches("^[\\w.-]+@[\\w-]+\\.[a-zA-Z]{2,}$"))
+                        errors.append("- Secondary email is not valid. Use format: user@example.com\n");
+
+                    if (errors.length() > 0) {
+                        JOptionPane.showMessageDialog(panel1, "Please fix the following issues:\n\n" + errors.toString(), "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
 
                     // Parse height and weight safely
                     int height_feet, height_inches, weight_lbs;
@@ -269,7 +299,7 @@ import java.io.IOException;
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
-            Font comboFont = new Font("Verdana", Font.PLAIN, 15);
+            Font comboFont = new Font("Verdana", Font.PLAIN, 12);
             Font boldFont = new Font("Verdana", Font.BOLD, 15);
             lblDirections.setFont(headerFont);
             lblFirst.setFont(mainFont);
@@ -295,7 +325,7 @@ import java.io.IOException;
             txtFirst.setFont(mainFont);
             txtLast.setFont(mainFont);
             txtBirth.setFont(mainFont);
-            comboGender.setFont(mainFont);
+            comboGender.setFont(comboFont);
             txtHeightFeet.setFont(mainFont);
             txtHeightInches.setFont(mainFont);
             txtWeight.setFont(mainFont);
@@ -457,7 +487,7 @@ import java.io.IOException;
             panel1.add(btnResetPassword, gbc);
 
             //setup JFrame
-            JFrame frame = new JFrame("Create Account");
+            JFrame frame = new JFrame("Account");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1500, 1000);
 
