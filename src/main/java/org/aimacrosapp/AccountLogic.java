@@ -4,6 +4,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.*;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -782,5 +785,104 @@ public class AccountLogic {
         System.out.println("Failed to retrieve UserAccount info for: " + email);
         return null;
     }
+
+    public boolean deleteAccount(String email, String password) throws IOException, InterruptedException {
+        String userId = extractUserIdFromEmail(email);  // Supabase user_id (UUID)
+
+        if (userId == null || userId.isEmpty()) {
+            System.out.println("User ID not found for email: " + email);
+            return false;
+        }
+
+        String accessToken = Session.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty()) {
+            System.out.println("Missing session token");
+            return false;
+        }
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        // === 1. Delete from your "users" table (triggers cascading deletes) ===
+        HttpRequest deleteFromUsersTable = HttpRequest.newBuilder()
+                .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
+                .header("apikey", DB_KEY)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Prefer", "return=representation")
+                .DELETE()
+                .build();
+
+        HttpResponse<String> userTableResponse = client.send(deleteFromUsersTable, HttpResponse.BodyHandlers.ofString());
+
+        if (userTableResponse.statusCode() != 200 && userTableResponse.statusCode() != 204) {
+            System.out.println("Failed to delete from users table. Response: " + userTableResponse.body());
+            return false;
+        }
+
+        // === 2. Delete from Supabase Auth (admin endpoint) ===
+        String serviceRoleKey = dotenv.get("MACROS_APP_SERVICE_ROLE_KEY"); // Must be stored securely
+
+        // IMPORTANT: Use base Supabase domain (not DB_URL)
+        String supabaseBaseUrl = DB_URL.replace("/rest/v1", "");
+        URI authUri = URI.create(supabaseBaseUrl + "/auth/v1/admin/users/" + userId);
+
+        HttpRequest deleteFromAuth = HttpRequest.newBuilder()
+                .uri(authUri)
+                .header("apikey", serviceRoleKey)
+                .header("Authorization", "Bearer " + serviceRoleKey)
+                .DELETE()
+                .build();
+
+        HttpResponse<String> authDeleteResponse = client.send(deleteFromAuth, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println("Auth delete status: " + authDeleteResponse.statusCode());
+
+        if (authDeleteResponse.statusCode() == 204 || authDeleteResponse.statusCode() == 200) {
+            System.out.println("Successfully deleted from auth.users");
+            return true;
+        } else {
+            System.out.println("Failed to delete from Supabase Auth. Response: " + authDeleteResponse.body());
+            return false;
+        }
+    }
+
+    public void copyUserSummaryToClipboard() {
+        UserAccount account = Session.getCurrentUserAccount();
+        User user = account.getUser();
+
+        if (user == null) {
+            JOptionPane.showMessageDialog(null, "User info not found.");
+            return;
+        }
+
+        String gender = user.getGender();
+        int birthYear = Integer.parseInt(user.getBirth_date().substring(0, 4));
+        int currentYear = java.time.Year.now().getValue();
+        int age = currentYear - birthYear;
+
+        StringBuilder summary = new StringBuilder();
+        summary.append(String.format("I am a %s that is %d years old. I am %d feet %d inches tall and weigh %d pounds. ",
+                gender, age, user.getHeight_feet(), user.getHeight_inches(), user.getWeight_lbs()));
+
+        if (user.getBody_type() != null && !user.getBody_type().isEmpty())
+            summary.append("Body Type: ").append(user.getBody_type()).append(". ");
+        if (user.getExperience_level() != null && !user.getExperience_level().isEmpty())
+            summary.append("Experience Level: ").append(user.getExperience_level()).append(". ");
+        if (user.getActivity_level() != null && !user.getActivity_level().isEmpty())
+            summary.append("Activity Level: ").append(user.getActivity_level()).append(". ");
+        if (user.getPrimary_goal() != null && !user.getPrimary_goal().isEmpty())
+            summary.append("Primary Goal: ").append(user.getPrimary_goal()).append(".");
+
+        // Copy to clipboard
+        StringSelection stringSelection = new StringSelection(summary.toString());
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+
+        JOptionPane.showMessageDialog(null,
+                "Your personal information has been copied to clipboard!\nPaste it into the chat with Joe so he can better assist you!");
+    }
+
+
+
+
 }
 

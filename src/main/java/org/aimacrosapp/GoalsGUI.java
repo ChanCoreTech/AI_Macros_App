@@ -38,15 +38,15 @@ public class GoalsGUI extends JFrame {
         lblDirections = new JLabel("Here, you can create/edit your general goals or enter today's daily macros to track your progress!");
         lblWorkoutsPer = new JLabel("Workouts per week:");
         lblCalories = new JLabel("Calories per day:");
-        lblCarbs = new JLabel("Carbs per day:");
-        lblProtein = new JLabel("Protein per day:");
-        lblFats = new JLabel("Fats per day:");
+        lblCarbs = new JLabel("Carbs per day (grams):");
+        lblProtein = new JLabel("Protein per day (grams):");
+        lblFats = new JLabel("Fats per day (grams):");
         lblTodayDate = new JLabel("Today's Date:");
         lblTodayWorkout = new JLabel("Did You Workout Today?:");
         lblTodayCalories = new JLabel("Today's Calories:");
-        lblTodayCarbs = new JLabel("Today's Carbs:");
-        lblTodayProtein = new JLabel("Today's Protein:");
-        lblTodayFats = new JLabel("Today's Fats:");
+        lblTodayCarbs = new JLabel("Today's Carbs (grams):");
+        lblTodayProtein = new JLabel("Today's Protein (grams):");
+        lblTodayFats = new JLabel("Today's Fats (grams):");
         btnSubmit = new JButton("Submit");
         btnUpdate = new JButton("Update");
 
@@ -460,6 +460,7 @@ public class GoalsGUI extends JFrame {
 
         // FRAME SETTINGS
         setTitle("Goals");
+        setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setResizable(true);

@@ -8,8 +8,8 @@ import java.io.IOException;
 
 
     public class AccountGUI extends JFrame {
-        private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
-                lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
+        private JLabel lblDirections, lblReq, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity,
+                lblPrimary, lblEmail, lblPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
 
         private JTextField txtFirst = new JTextField(15),
                 txtLast = new JTextField(15),
@@ -28,47 +28,37 @@ import java.io.IOException;
 
         //back arrow for every page
         ImageIcon backIcon;
-        private JButton btnBack, btnLogout, btnUpdateAccount, btnResetPassword;
+        private JButton btnBack, btnLogout, btnUpdateAccount, btnResetPassword, btnDeleteAccount;
         private JPanel panel1;
         private JPanel topPanel;
 
         public AccountGUI(){
+
             //initialize elements
             lblDirections = new JLabel("Here is your profile information. Feel free to edit whenever you want!");
-            lblFirst = new JLabel("First Name:");
-            lblLast = new JLabel("Last Name:");
-            lblBirth = new JLabel("Birth Date:");
-            lblGender = new JLabel("Gender:");
-            lblHeightFeet = new JLabel("Height (Feet):");
-            lblHeightInches = new JLabel("Height (Inches):");
-            lblWeight = new JLabel("Weight (lbs):");
+            lblReq = new JLabel("* Required Fields");
+            lblFirst = new JLabel("* First Name:");
+            lblLast = new JLabel("* Last Name:");
+            lblBirth = new JLabel("* Birth Date:");
+            lblGender = new JLabel("* Gender:");
+            lblHeightFeet = new JLabel("* Height (Feet):");
+            lblHeightInches = new JLabel("* Height (Inches):");
+            lblWeight = new JLabel("* Weight (lbs):");
             lblBodyType = new JLabel("Body Type:");
             lblExperience = new JLabel("Experience Level:");
             lblActivity = new JLabel("Activity Level:");
             lblPrimary = new JLabel("Primary Goal:");
-            lblEmail = new JLabel("Email:");
-            lblPassword = new JLabel("Password:");
-            lblNickname = new JLabel("Nickname:");
-            lblPhoneNumber = new JLabel("Phone Number:");
+            lblEmail = new JLabel("* Email:");
+            lblPassword = new JLabel("* Password:");
+            lblNickname = new JLabel("* Nickname:");
+            lblPhoneNumber = new JLabel("* Phone Number:");
             lblEmailSecond = new JLabel("Secondary Email:");
             btnUpdateAccount = new JButton("Update Account");
             btnResetPassword = new JButton("Reset Password");
+            btnDeleteAccount = new JButton("Delete Account");
 
             ToolTipManager.sharedInstance().setInitialDelay(100);
             txtPassword.setToolTipText("Passwords are hidden for security purposes. If you forgot your password, click 'Reset Password' below.");
-
-            //placeholders
-//            txtFirst.setText("John");
-//            txtLast.setText("Doe");
-//            txtBirth.setText("1960/08/08");
-//            comboGender.setSelectedItem("Male");
-//            txtHeightFeet.setText("5");
-//            txtHeightInches.setText("9");
-//            txtWeight.setText("140");
-//            txtEmail.setText("jdoe1@example.com");
-//            txtPassword.setText("jdoe123");
-//            txtNickname.setText("AWESOME");
-//            txtPhoneNumber.setText("440-658-8956");
 
             String[] comboOptionsGender = {"", "Male", "Female"};
             String[] comboOptionsBodyType = {"", "Slim", "Standard", "Athletic", "Muscular", "Bodybuilder", "Heavyset", "Obese"};
@@ -295,13 +285,102 @@ import java.io.IOException;
                 }
             });
 
+            btnDeleteAccount.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int confirm = JOptionPane.showConfirmDialog(
+                            panel1,
+                            "Are you sure you want to delete your account?\nThis deletion cannot be undone.",
+                            "Confirm Account Deletion",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                    );
+
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+                        JTextField txtConfirmEmail = new JTextField();
+                        JPasswordField txtConfirmPassword = new JPasswordField();
+
+                        inputPanel.add(new JLabel("Enter your email:"));
+                        inputPanel.add(txtConfirmEmail);
+                        inputPanel.add(new JLabel("Enter your password:"));
+                        inputPanel.add(txtConfirmPassword);
+
+                        int credentialsResult = JOptionPane.showConfirmDialog(
+                                panel1,
+                                inputPanel,
+                                "Confirm Credentials",
+                                JOptionPane.OK_CANCEL_OPTION,
+                                JOptionPane.PLAIN_MESSAGE
+                        );
+
+                        if (credentialsResult == JOptionPane.OK_OPTION) {
+                            String confirmEmail = txtConfirmEmail.getText().trim();
+                            String confirmPassword = new String(txtConfirmPassword.getPassword()).trim();
+
+                            try {
+                                String currentEmail = Session.getEmail();
+                                AccountLogic logic = new AccountLogic();
+                                UserAccount account = logic.getUserAndAccountByEmail(currentEmail);
+
+                                if (account == null) {
+                                    JOptionPane.showMessageDialog(panel1,
+                                            "Could not retrieve current account details.",
+                                            "Error",
+                                            JOptionPane.ERROR_MESSAGE);
+                                    return;
+                                }
+
+                                boolean isEmailMatch = confirmEmail.equals(currentEmail);
+                                boolean isPasswordMatch = logic.checkPassword(confirmPassword, account.getPassword());
+
+                                if (isEmailMatch && isPasswordMatch) {
+                                    boolean deleted = logic.deleteAccount(confirmEmail, confirmPassword);
+
+                                    if (deleted) {
+                                        JOptionPane.showMessageDialog(panel1,
+                                                "Account deleted successfully. Goodbye!",
+                                                "Success",
+                                                JOptionPane.INFORMATION_MESSAGE);
+                                        Session.clear();
+                                        new SignInGUI();
+                                        JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                                        if (topFrame != null) topFrame.dispose();
+                                    } else {
+                                        JOptionPane.showMessageDialog(panel1,
+                                                "Account deletion failed. Please try again later.",
+                                                "Deletion Failed",
+                                                JOptionPane.ERROR_MESSAGE);
+                                    }
+                                } else {
+                                    JOptionPane.showMessageDialog(panel1,
+                                            "The email or password you entered does not match your current account.",
+                                            "Invalid Credentials",
+                                            JOptionPane.ERROR_MESSAGE);
+                                }
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                JOptionPane.showMessageDialog(panel1,
+                                        "An error occurred while verifying credentials.",
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                }
+            });
+
+
 
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
             Font comboFont = new Font("Verdana", Font.PLAIN, 12);
             Font boldFont = new Font("Verdana", Font.BOLD, 15);
+            Font italicFont = new Font("Verdana", Font.ITALIC, 12);
             lblDirections.setFont(headerFont);
+            lblReq.setFont(italicFont);
+            lblReq.setForeground(Color.RED);
             lblFirst.setFont(mainFont);
             lblLast.setFont(mainFont);
             lblBirth.setFont(mainFont);
@@ -321,6 +400,7 @@ import java.io.IOException;
 
             btnUpdateAccount.setFont(boldFont);
             btnResetPassword.setFont(boldFont);
+            btnDeleteAccount.setFont(boldFont);
 
             txtFirst.setFont(mainFont);
             txtLast.setFont(mainFont);
@@ -361,6 +441,11 @@ import java.io.IOException;
             gbc.gridwidth = 4; // Span both columns
             gbc.anchor = GridBagConstraints.CENTER;
             panel1.add(lblDirections, gbc);
+
+            gbc.gridy = 1;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel1.add(lblReq, gbc);
+
             gbc.gridwidth = 1; // Reset grid width
 
             // Reset to left alignment
@@ -486,8 +571,15 @@ import java.io.IOException;
             gbc.insets = new Insets(10, 200, 10, 10); // top, left, bottom, right
             panel1.add(btnResetPassword, gbc);
 
+            gbc.gridx = 2;
+            gbc.anchor = GridBagConstraints.EAST;
+            gbc.insets = new Insets(10, 200, 10, 10);
+            panel1.add(btnDeleteAccount, gbc);
+
+
             //setup JFrame
             JFrame frame = new JFrame("Account");
+            frame.setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1500, 1000);
 

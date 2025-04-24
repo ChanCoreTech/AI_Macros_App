@@ -408,4 +408,32 @@ public class GoalsLogic {
         System.out.println("Failed to retrieve user goal data for: " + email);
         return null;
     }
+
+    public void deleteGoalHistoryRows(String accessToken, List<String> datesToDelete) throws IOException, InterruptedException {
+        for (String goalDate : datesToDelete) {
+            String encodedDate = java.net.URLEncoder.encode(goalDate, java.nio.charset.StandardCharsets.UTF_8);
+
+            String url = DB_URL + "/rest/v1/user_goal_history?goal_date=eq." + encodedDate;
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("apikey", DB_KEY)
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Accept", "application/json")
+                    .header("Prefer", "return=representation")
+                    .DELETE()
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 400) {
+                throw new IOException("Failed to delete entry with date " + goalDate + ": " + response.body());
+            }
+        }
+    }
+
+
+
+
+
 }

@@ -10,8 +10,8 @@ import org.mindrot.jbcrypt.BCrypt;
 //IF YOU HAVE TIME, ADD SECURITY QUESTIONS
 
 public class CreateAccountGUI extends JFrame {
-    private JLabel lblDirections, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity, lblPrimary,
-        lblEmail, lblPassword, lblConfirmPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
+    private JLabel lblDirections, lblReq, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity,
+            lblPrimary, lblEmail, lblPassword, lblConfirmPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
 
     private JTextField txtFirst = new JTextField(15),
             txtLast = new JTextField(15),
@@ -38,22 +38,23 @@ public class CreateAccountGUI extends JFrame {
         public CreateAccountGUI(){
             //initialize elements
             lblDirections = new JLabel("Please enter your personal and fitness info below and then click 'Create Account' when finished!");
-            lblFirst = new JLabel("First Name:");
-            lblLast = new JLabel("Last Name:");
-            lblBirth = new JLabel("Birth Date:");
-            lblGender = new JLabel("Gender:");
-            lblHeightFeet = new JLabel("Height (Feet):");
-            lblHeightInches = new JLabel("Height (Inches):");
-            lblWeight = new JLabel("Weight (lbs):");
+            lblReq = new JLabel("* Required Fields");
+            lblFirst = new JLabel("* First Name:");
+            lblLast = new JLabel("* Last Name:");
+            lblBirth = new JLabel("* Birth Date:");
+            lblGender = new JLabel("* Gender:");
+            lblHeightFeet = new JLabel("* Height (Feet):");
+            lblHeightInches = new JLabel("* Height (Inches):");
+            lblWeight = new JLabel("* Weight (lbs):");
             lblBodyType = new JLabel("Body Type:");
             lblExperience = new JLabel("Experience Level:");
             lblActivity = new JLabel("Activity Level:");
             lblPrimary = new JLabel("Primary Goal:");
-            lblEmail = new JLabel("Email:");
-            lblPassword = new JLabel("Password:");
-            lblConfirmPassword = new JLabel("Confirm Password:");
-            lblNickname = new JLabel("Nickname:");
-            lblPhoneNumber = new JLabel("Phone Number:");
+            lblEmail = new JLabel("* Email:");
+            lblPassword = new JLabel("* Password:");
+            lblConfirmPassword = new JLabel("* Confirm Password:");
+            lblNickname = new JLabel("* Nickname:");
+            lblPhoneNumber = new JLabel("* Phone Number:");
             lblEmailSecond = new JLabel("Secondary Email:");
             btnCreateAccount = new JButton("Create Account");
 
@@ -212,7 +213,10 @@ public class CreateAccountGUI extends JFrame {
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
             Font comboFont = new Font("Verdana", Font.PLAIN, 12);
             Font boldFont = new Font("Verdana", Font.BOLD, 15);
+            Font italicFont = new Font("Verdana", Font.ITALIC, 12);
             lblDirections.setFont(headerFont);
+            lblReq.setFont(italicFont);
+            lblReq.setForeground(Color.RED);
             lblFirst.setFont(mainFont);
             lblLast.setFont(mainFont);
             lblBirth.setFont(mainFont);
@@ -269,6 +273,11 @@ public class CreateAccountGUI extends JFrame {
             gbc.gridwidth = 4; // Span both columns
             gbc.anchor = GridBagConstraints.CENTER;
             panel1.add(lblDirections, gbc);
+
+            gbc.gridy = 1;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel1.add(lblReq, gbc);
+
             gbc.gridwidth = 1; // Reset grid width
 
             // Reset to left alignment
@@ -396,6 +405,7 @@ public class CreateAccountGUI extends JFrame {
 
             //setup JFrame
             JFrame frame = new JFrame("Create Account");
+            frame.setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1500, 1000);
 

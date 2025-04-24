@@ -17,7 +17,7 @@ public class DashboardGUI extends JFrame {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String BOTPRESS_URL = dotenv.get("MACROS_APP_BOTPRESS_URL_LINK");
 
-    private JButton btnBack, btnLogout;
+    private JButton btnBack, btnLogout, btnCopy;
     private JPanel panel1;
     private JPanel lblPanel;
     private JPanel botPanel;
@@ -26,11 +26,16 @@ public class DashboardGUI extends JFrame {
 
     public DashboardGUI() {
 
+        setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
+
         // Get the current local date in ISO format
         LocalDate today = LocalDate.now();
         String todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         try {
+            //copy summary button
+            btnCopy = new JButton("Copy Your Info");
+
             // Back button
             ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
             btnBack = new JButton(backIcon);
@@ -68,10 +73,10 @@ public class DashboardGUI extends JFrame {
                 UserGoals goals = goalData.getUserGoals();
                 if (goals != null) {
                     lblGoalWorkout.setText("Workouts per Week (Goal): " + goals.getWorkouts_per_week());
-                    lblGoalCalories.setText("Daily Calorie Goal: " + goals.getDaily_calories());
-                    lblGoalCarbs.setText("Daily Carbs Goal: " + goals.getDaily_carbs());
-                    lblGoalProtein.setText("Daily Protein Goal: " + goals.getDaily_protein());
-                    lblGoalFats.setText("Daily Fats Goal: " + goals.getDaily_fats());
+                    lblGoalCalories.setText("Daily Calorie Goal: " + goals.getDaily_calories() + " Cals");
+                    lblGoalCarbs.setText("Daily Carbs Goal: " + goals.getDaily_carbs() + " Grams");
+                    lblGoalProtein.setText("Daily Protein Goal: " + goals.getDaily_protein() + " Grams");
+                    lblGoalFats.setText("Daily Fats Goal: " + goals.getDaily_fats() + " Grams");
                 } else {
                     lblGoalWorkout.setText("Workouts per Week (Goal): No data");
                     lblGoalCalories.setText("Daily Calorie Goal: No data");
@@ -92,10 +97,10 @@ public class DashboardGUI extends JFrame {
 
                 if (todayHistory != null) {
                     lblWorkoutStatus.setText("Today's Workout: " + (todayHistory.isTodays_workout() ? "Yes" : "No"));
-                    lblCalories.setText("Today's Calories: " + todayHistory.getTodays_calories());
-                    lblCarbs.setText("Today's Carbs: " + todayHistory.getTodays_carbs());
-                    lblProtein.setText("Today's Protein: " + todayHistory.getTodays_protein());
-                    lblFats.setText("Today's Fats: " + todayHistory.getTodays_fats());
+                    lblCalories.setText("Today's Calories: " + todayHistory.getTodays_calories() + " Cals");
+                    lblCarbs.setText("Today's Carbs: " + todayHistory.getTodays_carbs() + " Grams");
+                    lblProtein.setText("Today's Protein: " + todayHistory.getTodays_protein() + " Grams");
+                    lblFats.setText("Today's Fats: " + todayHistory.getTodays_fats() + " Grams");
                 } else {
                     lblWorkoutStatus.setText("Today's Workout: No data");
                     lblCalories.setText("Today's Calories: No data");
@@ -144,6 +149,11 @@ public class DashboardGUI extends JFrame {
                     //do nothing
                 }
             }
+        });
+
+        btnCopy.addActionListener(e -> {
+            AccountLogic logic = new AccountLogic();
+            logic.copyUserSummaryToClipboard();
         });
 
         // Top panel for back button (left) and logout button (right)
@@ -235,6 +245,9 @@ public class DashboardGUI extends JFrame {
         lblBot.setFont(smallFont);
         panel1.add(lblWelcome, gbc);
 
+        btnCopy.setFont(boldFont);
+        btnCopy.setPreferredSize(new Dimension(180, 30));
+
         lblPanel = new JPanel(new GridBagLayout());
         lblPanel.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints labelGbc = new GridBagConstraints();
@@ -311,6 +324,12 @@ public class DashboardGUI extends JFrame {
         btnBotpress.setToolTipText("AI Chatbot");
 
         panel1.add(botPanel, gbc);
+        gbc.gridy++;
+        //gbc.gridwidth = 1; // Don't let it span across columns
+        gbc.anchor = GridBagConstraints.CENTER; // Or WEST if you want it aligned left
+        gbc.fill = GridBagConstraints.NONE; // Prevent stretching
+
+        panel1.add(btnCopy, gbc);
 
         //botpress button click event
         btnBotpress.addActionListener(new ActionListener() {
@@ -326,6 +345,12 @@ public class DashboardGUI extends JFrame {
 
         // Setup JFrame
         JFrame frame = new JFrame("Dashboard");
+        frame.setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1500, 1000);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.setResizable(true);
+        frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1500, 1000);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);

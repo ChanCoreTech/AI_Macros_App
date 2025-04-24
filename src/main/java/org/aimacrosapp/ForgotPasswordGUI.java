@@ -36,6 +36,8 @@ public class ForgotPasswordGUI extends JFrame {
         txtPassword.setEnabled(false);
         txtConfirmPass.setEnabled(false);
 
+        btnSubmit.setPreferredSize(new Dimension(150, 30));
+
         //back button image logic
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
@@ -63,8 +65,8 @@ public class ForgotPasswordGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 AccountLogic accountLogic = new AccountLogic();
-                String email = txtEmail.getText();
-                String nickname = txtNickname.getText();
+                String email = txtEmail.getText().trim();
+                String nickname = txtNickname.getText().trim();
                 String password = new String(txtPassword.getPassword());
                 String confirmPass = new String(txtConfirmPass.getPassword());
 
@@ -90,7 +92,36 @@ public class ForgotPasswordGUI extends JFrame {
                     }
 
                 } else {
-                    // Step 2: Update password
+                    // Step 2: Validate passwords
+                    StringBuilder errors = new StringBuilder();
+
+                    if (!password.equals(confirmPass)) {
+                        errors.append("- Passwords do not match.\n");
+                    }
+                    if (password.length() < 6) {
+                        errors.append("- Password must be at least 6 characters long.\n");
+                    }
+                    if (!password.matches(".*[A-Z].*")) {
+                        errors.append("- Password must contain at least one uppercase letter.\n");
+                    }
+                    if (!password.matches(".*[a-z].*")) {
+                        errors.append("- Password must contain at least one lowercase letter.\n");
+                    }
+                    if (!password.matches(".*\\d.*")) {
+                        errors.append("- Password must contain at least one number.\n");
+                    }
+                    if (!password.matches(".*[!@#$%^&*(),.?\":{}|<>\\[\\]\\\\/~`+=_-].*")) {
+                        errors.append("- Password must contain at least one special character.\n");
+                    }
+
+                    if (errors.length() > 0) {
+                        JOptionPane.showMessageDialog(panel1,
+                                "Please correct the following:\n" + errors,
+                                "Validation Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    // Step 3: Attempt to update password
                     boolean updated = accountLogic.updatePassword(email, password, confirmPass);
                     if (updated) {
                         JOptionPane.showMessageDialog(panel1,
@@ -104,12 +135,13 @@ public class ForgotPasswordGUI extends JFrame {
                         }
                     } else {
                         JOptionPane.showMessageDialog(panel1,
-                                "Password update failed. Ensure both password fields match and are valid.",
+                                "Password update failed. Please try again.",
                                 "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         });
+
 
         //resize all elements
         //Font headerFont = new Font("Helvetica", Font.BOLD, 20);
@@ -199,6 +231,7 @@ public class ForgotPasswordGUI extends JFrame {
 
         // Setup JFrame
         JFrame frame = new JFrame("Forgot Password");
+        frame.setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1500, 1000);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);

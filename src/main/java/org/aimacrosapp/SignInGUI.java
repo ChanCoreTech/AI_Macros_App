@@ -130,7 +130,7 @@ public class SignInGUI extends JFrame {
 
 
         // === SETUP FRAME ===
-        setTitle("AI Macros App");
+        setTitle("Sign In");
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);

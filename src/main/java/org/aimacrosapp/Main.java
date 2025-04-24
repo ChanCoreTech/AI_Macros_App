@@ -8,15 +8,13 @@ public class Main {
 
         //• ADD SESSIONS
         //• TOUCH UP CHATBOT
-        //• ADD LOGO TO EVERY PAGE TASKBAR
-        // • ADD FORGOT PASSWORD VALIDATION AND EXTRA QUESTIONS
-        //• ADD HOVER TEXT AND TOUCH UP GUI
+        // • RE-WORK FORGOT PASSWORD
 
         //• DO WORD AND POWERPOINT
 
+        // • ADD HOVER TEXT AND TOUCH UP GUI
         // • DON'T EXPOSE ENV
         // • CHANGE COMMENTS
-        // • RE-WORD LABELS
         // • IMAGE RESOLUTION
 
         // • TEST .JAR

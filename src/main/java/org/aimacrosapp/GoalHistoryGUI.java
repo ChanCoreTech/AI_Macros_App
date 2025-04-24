@@ -8,14 +8,19 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Comparator;
 
 public class GoalHistoryGUI extends JFrame {
 
     private JPanel panel1;
-    private JButton btnBack, btnLogout;
+    private JButton btnBack, btnLogout, btnDelete;
 
     public GoalHistoryGUI() throws IOException {
+
+        //initialize delete
+        btnDelete = new JButton("Delete");
 
         // === BACK BUTTON ===
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
@@ -65,6 +70,7 @@ public class GoalHistoryGUI extends JFrame {
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont   = new Font("Verdana",  Font.PLAIN, 15);
         Font boldFont   = new Font("Verdana",  Font.BOLD, 15);
+        btnDelete.setFont(boldFont);
 
         // === TABLE SETUP ===
         String[] columnNames = {"Date", "Workout", "Calories", "Carbs", "Protein", "Fats"};
@@ -139,6 +145,9 @@ public class GoalHistoryGUI extends JFrame {
         // === SUBMIT BUTTON ===
         JButton btnSubmitUpdates = new JButton("Submit Changes");
         btnSubmitUpdates.setFont(boldFont);
+        btnSubmitUpdates.setPreferredSize(new Dimension(180, 30));
+        btnDelete.setPreferredSize(new Dimension(180, 30));
+
         btnSubmitUpdates.addActionListener(e -> {
             if (goalTable.isEditing()) goalTable.getCellEditor().stopCellEditing();
 
@@ -250,6 +259,41 @@ public class GoalHistoryGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Updates submitted successfully!");
         });
 
+        btnDelete.addActionListener(e -> {
+            int[] selectedRows = goalTable.getSelectedRows();
+            if (selectedRows.length > 0) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        this,
+                        "Are you sure you want to delete the selected row(s)?",
+                        "Confirm Deletion",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm != JOptionPane.YES_OPTION) return;
+
+                List<String> datesToDelete = new ArrayList<>();
+                for (int i = 0; i < selectedRows.length; i++) {
+                    int modelIndex = goalTable.convertRowIndexToModel(selectedRows[i]);
+                    String goalDate = model.getValueAt(modelIndex, 0).toString();
+                    datesToDelete.add(goalDate);
+                }
+
+                try {
+                    logic.deleteGoalHistoryRows(Session.getAccessToken(), datesToDelete);
+                    // After successful deletion, remove from table model
+                    for (int i = selectedRows.length - 1; i >= 0; i--) {
+                        model.removeRow(goalTable.convertRowIndexToModel(selectedRows[i]));
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Failed to delete selected rows from Supabase.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No rows selected to delete.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+
 
         // === MAIN PANEL ===
         panel1 = new JPanel(new GridBagLayout());
@@ -260,7 +304,7 @@ public class GoalHistoryGUI extends JFrame {
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        JLabel lblHint = new JLabel("You can view, sort, and edit your daily history here. Click the 'Submit Changes' button to save any changes made.");
+        JLabel lblHint = new JLabel("You can view, sort, edit, and delete your daily history here. Click the 'Submit Changes' button to save any changes made.");
         lblHint.setFont(headerFont);
         gbc.gridy = 0;
         panel1.add(lblHint, gbc);
@@ -268,11 +312,22 @@ public class GoalHistoryGUI extends JFrame {
         gbc.gridy = 1;
         panel1.add(scrollPane, gbc);
 
+// Create a horizontal button panel to group Submit and Delete side by side
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 20px gap between buttons
+        buttonPanel.setBackground(Color.LIGHT_GRAY);
+        buttonPanel.add(btnSubmitUpdates);
+        buttonPanel.add(btnDelete);
+
+// Add the button panel instead of individual buttons
         gbc.gridy = 2;
-        panel1.add(btnSubmitUpdates, gbc);
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        panel1.add(buttonPanel, gbc);
+
 
         // === FRAME SETTINGS ===
         setTitle("Goal History");
+        setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
