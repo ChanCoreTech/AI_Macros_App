@@ -25,7 +25,7 @@ public class DashboardGUI extends JFrame {
     private JLabel lblWorkoutStatus, lblCalories, lblCarbs, lblProtein, lblFats, lblGoalWorkout, lblGoalCalories, lblGoalCarbs, lblGoalProtein, lblGoalFats, lblBot;
 
     public DashboardGUI() {
-
+        //app icon
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
 
         // Get the current local date in ISO format
@@ -42,7 +42,6 @@ public class DashboardGUI extends JFrame {
             btnBack.setBorderPainted(false);
             btnBack.setContentAreaFilled(false);
             btnBack.setFocusPainted(false);
-
 
             // Log Out
             ImageIcon logoutIcon = new ImageIcon(getClass().getResource("/logout.png"));
@@ -113,6 +112,7 @@ public class DashboardGUI extends JFrame {
             ex.printStackTrace();
         }
 
+        //back button click event
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -125,6 +125,7 @@ public class DashboardGUI extends JFrame {
             }
         });
 
+        //logout button click event
         btnLogout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -151,6 +152,7 @@ public class DashboardGUI extends JFrame {
             }
         });
 
+        //copy info to clipboard click event
         btnCopy.addActionListener(e -> {
             AccountLogic logic = new AccountLogic();
             logic.copyUserSummaryToClipboard();
@@ -166,7 +168,6 @@ public class DashboardGUI extends JFrame {
 
         topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
         topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
-
 
         // Main panel with GridBagLayout
         panel1 = new JPanel(new GridBagLayout());
@@ -196,8 +197,7 @@ public class DashboardGUI extends JFrame {
             btnLogout.setToolTipText("Logout");
             btn.setToolTipText(page);
 
-
-
+            //click events for navigation icons
             btn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -227,6 +227,7 @@ public class DashboardGUI extends JFrame {
         gbc.gridwidth = 2;
         JLabel lblWelcome = new JLabel("This is your personal dashboard. Click the displayed icons to explore!", SwingConstants.CENTER);
 
+        //fonts and set fonts
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font smallFont = new Font("Verdana", Font.BOLD, 12);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
@@ -311,12 +312,14 @@ public class DashboardGUI extends JFrame {
         gbc.gridx = 0;
         gbc.gridwidth = 2;
 
+        //bot pannel
         botPanel = new JPanel(new BorderLayout());
         botPanel.setBackground(Color.LIGHT_GRAY);
 
         lblBot.setHorizontalAlignment(SwingConstants.CENTER);
         botPanel.add(lblBot, BorderLayout.NORTH);
 
+        //Joe button
         JButton btnBotpress = new JButton(getScaledIcon("/botpress_icon.png", 200, 200));
         btnBotpress.setBorderPainted(false);
         btnBotpress.setContentAreaFilled(false);
@@ -364,6 +367,7 @@ public class DashboardGUI extends JFrame {
         frame.setVisible(true);
     }
 
+    //method to open page in nav bar
     private void openPage(String page) throws IOException {
         switch (page) {
             case "Account":
@@ -387,12 +391,13 @@ public class DashboardGUI extends JFrame {
         }
     }
 
+    //method to scale icon down for better resolution
     private ImageIcon getScaledIcon(String path, int width, int height) {
         try {
-            System.out.println("🧪 Attempting to load: " + path);
+            System.out.println("Attempting to load: " + path);
             java.net.URL resource = getClass().getResource(path);
             if (resource == null) {
-                System.err.println("❌ Resource not found: " + path);
+                System.err.println("Resource not found: " + path);
                 return null;
             }
 
@@ -409,10 +414,9 @@ public class DashboardGUI extends JFrame {
 
             return new ImageIcon(scaledImage);
         } catch (Exception e) {
-            System.err.println("❌ Failed to load or scale image: " + path);
+            System.err.println("Failed to load or scale image: " + path);
             e.printStackTrace();
             return null;
         }
     }
-
 }

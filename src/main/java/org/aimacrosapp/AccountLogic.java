@@ -13,6 +13,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.LocalDate;
 import java.util.Scanner;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -24,12 +25,10 @@ public class AccountLogic {
     //dotenv allows me to save keys in env file
     private static final Dotenv dotenv = Dotenv.configure()
             .filename(".env")
-            .load(); // Load from classpath (resources folder)
-
+            .load();
 
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
-
 
     // Hash password
     public String hashPassword(String plainPassword) {
@@ -77,27 +76,7 @@ public class AccountLogic {
         conn.setRequestProperty("Prefer", "return=representation");
         conn.setRequestProperty("apikey", DB_KEY);
 
-        // ✅ Include bearer token from signed-in session
-        String accessToken = Session.getAccessToken();
-        if (accessToken != null && !accessToken.isEmpty()) {
-            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
-        }
-
-        conn.setDoOutput(true);
-        return conn;
-    }
-
-    //overloaded method to establish HTTP connections (user update insertion only)
-    public HttpURLConnection establishDatabaseConnection(UUID user_id, String field, String newValue) throws IOException {
-        URL url = new URL(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        conn.setRequestMethod("PATCH");
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Prefer", "return=minimal");
-        conn.setRequestProperty("apikey", DB_KEY);
-
-        // ✅ Include the access token for authenticated access
+        // token for secure sessions
         String accessToken = Session.getAccessToken();
         if (accessToken != null && !accessToken.isEmpty()) {
             conn.setRequestProperty("Authorization", "Bearer " + accessToken);
@@ -128,7 +107,7 @@ public class AccountLogic {
 
     // Method to get user id from email
     public String extractUserIdFromEmail(String email) throws IOException {
-        String accessToken = Session.getAccessToken();  // ← Get token from session
+        String accessToken = Session.getAccessToken();  // token for secure sessions
         if (accessToken == null || accessToken.isEmpty()) {
             System.out.println("Access token is missing. User may not be authenticated.");
             return null;
@@ -167,128 +146,10 @@ public class AccountLogic {
         return null;
     }
 
-
+    //method to grab user account for the Session class
     public UserAccount getUserAccountForSession() throws IOException {
         String email = Session.getEmail();
-        return getUserAndAccountByEmail(email); // this already returns both user + user_account
-    }
-
-    //method to update/edit a user field
-    public void updateUserField(UUID userId) {
-        Scanner scanner = new Scanner(System.in);
-        // List of valid fields
-        String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "weight_lbs", "body_type", "experience_level", "activity_level", "primary_goal"};
-
-        System.out.println("Which field do you want to update?");
-        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
-
-        // Validate field
-        boolean isValidField = false;
-        for (String field : validFields) {
-            if (field.equals(fieldToUpdate)) {
-                isValidField = true;
-                break;
-            }
-        }
-
-        if (!isValidField) {
-            System.out.println("Invalid field name.");
-            return;
-        }
-
-        System.out.println("Enter the new value:");
-        String newValue = scanner.nextLine().trim();
-
-        // Call API update method
-        updateDatabase(userId, fieldToUpdate, newValue);
-    }
-
-    public void updateDatabase(UUID userId, String field, String newValue) {
-        try {
-            String accessToken = Session.getAccessToken();  // Ensure token is available
-            if (accessToken == null || accessToken.isEmpty()) {
-                System.out.println("Access token missing. Cannot perform update.");
-                return;
-            }
-
-            HttpClient client = HttpClient.newHttpClient();
-
-            // Construct JSON PATCH body
-            String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
-
-            // Build request
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
-                    .header("Authorization", "Bearer " + accessToken)
-                    .header("apikey", DB_KEY)
-                    .header("Content-Type", "application/json")
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
-                    .build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200 || response.statusCode() == 204) {
-                System.out.println("Update successful!");
-            } else {
-                System.out.println("Update failed: " + response.statusCode());
-                System.out.println(response.body());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Database update failed.");
-        }
-    }
-
-
-    //method to delete user from user table
-    public static void deleteUser(UUID user_id) throws Exception {
-        URI uri = new URI(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .header("apikey", DB_KEY)  // Supabase requires the API key
-                .header("Authorization", "Bearer " + DB_KEY) // Sometimes needed
-                .header("Content-Type", "application/json")
-                .method("DELETE", HttpRequest.BodyPublishers.noBody()) // DELETE request
-                .build();
-
-        HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
-
-        if (response.statusCode() == 204) {
-            System.out.println("User deleted successfully.");
-        } else {
-            System.out.println("Failed to delete user. Status code: " + response.statusCode());
-        }
-    }
-
-    //method to update/edit a user_account field
-    public void updateUserAccountField(UUID user_account_id) {
-        Scanner scanner = new Scanner(System.in);
-        // List of valid fields
-        String[] validFields = {"email", "password", "nickname", "phone_number", "email_second"};
-
-        System.out.println("Which field do you want to update?");
-        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
-
-        // Validate field
-        boolean isValidField = false;
-        for (String field : validFields) {
-            if (field.equals(fieldToUpdate)) {
-                isValidField = true;
-                break;
-            }
-        }
-
-        if (!isValidField) {
-            System.out.println("Invalid field name.");
-            return;
-        }
-
-        System.out.println("Enter the new value:");
-        String newValue = scanner.nextLine().trim();
-
-        // Call API update method
-        updateDatabaseAccount(user_account_id, fieldToUpdate, newValue);
+        return getUserAndAccountByEmail(email);
     }
 
     //method to update user account table
@@ -326,6 +187,7 @@ public class AccountLogic {
         }
     }
 
+    //method to sign up before account creation (auth, pre-data insertion)
     public String signUpUser(String email, String plainPassword) throws IOException, InterruptedException {
         String signupUrl = DB_URL + "/auth/v1/signup";
 
@@ -353,6 +215,7 @@ public class AccountLogic {
             String accessToken = json.getString("access_token");
             String userId = json.getJSONObject("user").getString("id");
 
+            //token for security
             Session.setAccessToken(accessToken);
             return userId;
         } else {
@@ -361,13 +224,11 @@ public class AccountLogic {
         }
     }
 
-
-
-
     // Method to create a new user and insert into the database
     public String createUser(String user_id, String first_name, String last_name, String birth_date, String gender,
                              int height_feet, int height_inches, int weight_lbs,
                              String body_type, String experience_level, String activity_level, String primary_goal) throws IOException {
+        //access token for security
         String accessToken = Session.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             System.out.println("Access token missing. Cannot create user.");
@@ -423,7 +284,7 @@ public class AccountLogic {
             System.out.println("Invalid user_id provided");
             return false;
         }
-
+        //password hashed
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
         StringBuilder jsonBuilder = new StringBuilder();
@@ -479,7 +340,7 @@ public class AccountLogic {
             System.out.println("Could not find user_id for email: " + email);
             return false;
         }
-
+        //access token for security
         String accessToken = Session.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             System.out.println("Access token missing. Cannot update user.");
@@ -519,7 +380,7 @@ public class AccountLogic {
     //method to update/edit user account
     public boolean updateUserAccount(String email, String password, String nickname,
                                      String phoneNumber, String emailSecond) throws IOException, InterruptedException {
-
+        //access token for security
         String accessToken = Session.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             System.out.println("Access token missing. Cannot update user account.");
@@ -579,37 +440,22 @@ public class AccountLogic {
         }
     }
 
-
-
-
     public boolean confirmAccount(String email, String nickname) {
         try {
-            String accessToken = Session.getAccessToken();
-            if (accessToken == null || accessToken.isEmpty()) {
-                System.out.println("Access token missing. Cannot confirm account.");
-                return false;
-            }
-
             // Encode query parameters
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
             String encodedNickname = URLEncoder.encode(nickname, StandardCharsets.UTF_8);
             String requestUrl = DB_URL + "/rest/v1/user_account?email=eq." + encodedEmail + "&nickname=eq." + encodedNickname;
 
-            System.out.println("Requesting: " + requestUrl);
-
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(requestUrl))
                     .header("Content-Type", "application/json")
-                    .header("apikey", DB_KEY)
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header("apikey", DB_KEY) // Service role key is okay here if no access token
                     .GET()
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println("Response Code: " + response.statusCode());
-            System.out.println("Response Body: " + response.body());
 
             if (response.statusCode() == 200) {
                 JSONArray jsonArray = new JSONArray(response.body());
@@ -621,15 +467,9 @@ public class AccountLogic {
                 JSONObject userObject = jsonArray.getJSONObject(0);
                 String storedNickname = userObject.getString("nickname");
 
-                if (nickname.equals(storedNickname)) {
-                    System.out.println("Successful match.");
-                    return true;
-                } else {
-                    System.out.println("Nickname does not match.");
-                    return false;
-                }
+                return nickname.equals(storedNickname);
             } else {
-                System.out.println("Failed: " + response.statusCode());
+                System.out.println("Failed to confirm user: " + response.body());
                 return false;
             }
 
@@ -640,6 +480,7 @@ public class AccountLogic {
     }
 
 
+    //method to reset password
     public boolean updatePassword(String email, String newPassword, String confirmPassword) {
         if (email == null || email.isEmpty()) {
             System.out.println("Email is required.");
@@ -652,26 +493,18 @@ public class AccountLogic {
         }
 
         try {
-            // Get the token from session
-            String accessToken = Session.getAccessToken();
-            if (accessToken == null || accessToken.isEmpty()) {
-                System.out.println("Access token missing. Cannot update password.");
-                return false;
-            }
-
             // Hash the new password using BCrypt
             String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
 
-            // Build the PATCH body with the hashed password
+            // Build JSON body
             JSONObject json = new JSONObject();
             json.put("password", hashedPassword);
 
-            // PATCH request to update password securely
+            // Create PATCH request WITHOUT Authorization header (use anon role)
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
                     .header("Content-Type", "application/json")
-                    .header("apikey", DB_KEY)
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header("apikey", DB_KEY) // Use service role key here if needed for admin-level access
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                     .build();
 
@@ -694,8 +527,10 @@ public class AccountLogic {
 
 
 
+
     //setup connection to database for getUserAccountByEmail
     private HttpURLConnection setupConnection(String endpoint, String method) throws IOException {
+        //access token for security
         String accessToken = Session.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             throw new IOException("Access token is missing. User must be signed in.");
@@ -786,14 +621,15 @@ public class AccountLogic {
         return null;
     }
 
+    //method to delete account
     public boolean deleteAccount(String email, String password) throws IOException, InterruptedException {
-        String userId = extractUserIdFromEmail(email);  // Supabase user_id (UUID)
+        String userId = extractUserIdFromEmail(email);
 
         if (userId == null || userId.isEmpty()) {
             System.out.println("User ID not found for email: " + email);
             return false;
         }
-
+        //access token for security
         String accessToken = Session.getAccessToken();
         if (accessToken == null || accessToken.isEmpty()) {
             System.out.println("Missing session token");
@@ -845,44 +681,170 @@ public class AccountLogic {
         }
     }
 
+    //method to copy user's info to clipboard for AI Chatbot
     public void copyUserSummaryToClipboard() {
-        UserAccount account = Session.getCurrentUserAccount();
-        User user = account.getUser();
+        try {
+            String email = Session.getEmail();
 
-        if (user == null) {
-            JOptionPane.showMessageDialog(null, "User info not found.");
+            // Fetch fresh data from Supabase
+            UserAccount userAccount = getUserAndAccountByEmail(email); // Make sure this always does a fresh fetch
+
+            if (userAccount == null || userAccount.getUser() == null) {
+                JOptionPane.showMessageDialog(null, "Unable to retrieve user information.");
+                return;
+            }
+
+            User user = userAccount.getUser();
+
+            int currentYear = LocalDate.now().getYear();
+            int birthYear = Integer.parseInt(user.getBirth_date().substring(0, 4)); // Assumes YYYY-MM-DD or YYYY/MM/DD
+            int age = currentYear - birthYear;
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("I am a ").append(user.getGender())
+                    .append(" that is ").append(age).append(" years old. ")
+                    .append("I am ").append(user.getHeight_feet()).append("' ")
+                    .append(user.getHeight_inches()).append("\" tall and weigh ")
+                    .append(user.getWeight_lbs()).append(" pounds.");
+
+            if (!user.getBody_type().isEmpty())
+                sb.append(" Body Type: ").append(user.getBody_type()).append(".");
+            if (!user.getExperience_level().isEmpty())
+                sb.append(" Experience Level: ").append(user.getExperience_level()).append(".");
+            if (!user.getActivity_level().isEmpty())
+                sb.append(" Activity Level: ").append(user.getActivity_level()).append(".");
+            if (!user.getPrimary_goal().isEmpty())
+                sb.append(" Primary Goal: ").append(user.getPrimary_goal()).append(".");
+
+            // Copy to clipboard
+            StringSelection selection = new StringSelection(sb.toString());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+
+            // Message box confirmation
+            JOptionPane.showMessageDialog(null,
+                    "Your personal information has been copied to clipboard!\nPaste it into the chat with Joe so he can better assist you!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Failed to copy info to clipboard.");
+        }
+    }
+    //method to update/edit a user field (for console testing only)
+    public void updateUserField(UUID userId) {
+        Scanner scanner = new Scanner(System.in);
+        // List of valid fields
+        String[] validFields = {"first_name", "last_name", "birth_date", "gender", "height_feet", "height_inches", "weight_lbs", "body_type", "experience_level", "activity_level", "primary_goal"};
+
+        System.out.println("Which field do you want to update?");
+        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
+
+        // Validate field
+        boolean isValidField = false;
+        for (String field : validFields) {
+            if (field.equals(fieldToUpdate)) {
+                isValidField = true;
+                break;
+            }
+        }
+
+        if (!isValidField) {
+            System.out.println("Invalid field name.");
             return;
         }
 
-        String gender = user.getGender();
-        int birthYear = Integer.parseInt(user.getBirth_date().substring(0, 4));
-        int currentYear = java.time.Year.now().getValue();
-        int age = currentYear - birthYear;
+        System.out.println("Enter the new value:");
+        String newValue = scanner.nextLine().trim();
 
-        StringBuilder summary = new StringBuilder();
-        summary.append(String.format("I am a %s that is %d years old. I am %d feet %d inches tall and weigh %d pounds. ",
-                gender, age, user.getHeight_feet(), user.getHeight_inches(), user.getWeight_lbs()));
+        // Call API update method
+        updateDatabase(userId, fieldToUpdate, newValue);
+    }
 
-        if (user.getBody_type() != null && !user.getBody_type().isEmpty())
-            summary.append("Body Type: ").append(user.getBody_type()).append(". ");
-        if (user.getExperience_level() != null && !user.getExperience_level().isEmpty())
-            summary.append("Experience Level: ").append(user.getExperience_level()).append(". ");
-        if (user.getActivity_level() != null && !user.getActivity_level().isEmpty())
-            summary.append("Activity Level: ").append(user.getActivity_level()).append(". ");
-        if (user.getPrimary_goal() != null && !user.getPrimary_goal().isEmpty())
-            summary.append("Primary Goal: ").append(user.getPrimary_goal()).append(".");
+    //method to update database in console testing
+    public void updateDatabase(UUID userId, String field, String newValue) {
+        try {
+            String accessToken = Session.getAccessToken();  // Ensure token is available
+            if (accessToken == null || accessToken.isEmpty()) {
+                System.out.println("Access token missing. Cannot perform update.");
+                return;
+            }
 
-        // Copy to clipboard
-        StringSelection stringSelection = new StringSelection(summary.toString());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, null);
+            HttpClient client = HttpClient.newHttpClient();
 
-        JOptionPane.showMessageDialog(null,
-                "Your personal information has been copied to clipboard!\nPaste it into the chat with Joe so he can better assist you!");
+            // Construct JSON PATCH body
+            String jsonInputString = String.format("{\"%s\":\"%s\"}", field, newValue);
+
+            // Build request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(DB_URL + "/rest/v1/users?user_id=eq." + userId))
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("apikey", DB_KEY)
+                    .header("Content-Type", "application/json")
+                    .method("PATCH", HttpRequest.BodyPublishers.ofString(jsonInputString))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200 || response.statusCode() == 204) {
+                System.out.println("Update successful!");
+            } else {
+                System.out.println("Update failed: " + response.statusCode());
+                System.out.println(response.body());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Database update failed.");
+        }
     }
 
 
+    //method to delete user from user table (console testing only)
+    public static void deleteUser(UUID user_id) throws Exception {
+        URI uri = new URI(DB_URL + "/rest/v1/users?user_id=eq." + user_id);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("apikey", DB_KEY)  // Supabase requires the API key
+                .header("Authorization", "Bearer " + DB_KEY) // Sometimes needed
+                .header("Content-Type", "application/json")
+                .method("DELETE", HttpRequest.BodyPublishers.noBody()) // DELETE request
+                .build();
 
+        HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
 
+        if (response.statusCode() == 204) {
+            System.out.println("User deleted successfully.");
+        } else {
+            System.out.println("Failed to delete user. Status code: " + response.statusCode());
+        }
+    }
+
+    //method to update/edit a user_account field (console testing only)
+    public void updateUserAccountField(UUID user_account_id) {
+        Scanner scanner = new Scanner(System.in);
+        // List of valid fields
+        String[] validFields = {"email", "password", "nickname", "phone_number", "email_second"};
+
+        System.out.println("Which field do you want to update?");
+        String fieldToUpdate = scanner.nextLine().trim().toLowerCase();
+
+        // Validate field
+        boolean isValidField = false;
+        for (String field : validFields) {
+            if (field.equals(fieldToUpdate)) {
+                isValidField = true;
+                break;
+            }
+        }
+
+        if (!isValidField) {
+            System.out.println("Invalid field name.");
+            return;
+        }
+
+        System.out.println("Enter the new value:");
+        String newValue = scanner.nextLine().trim();
+
+        // Call API update method
+        updateDatabaseAccount(user_account_id, fieldToUpdate, newValue);
+    }
 }
 

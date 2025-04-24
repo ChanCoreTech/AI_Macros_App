@@ -13,6 +13,8 @@ public class Session {
 
     private static final Preferences prefs = Preferences.userRoot().node("AI-Macros-Session");
 
+    //gets and sets
+
     public static void setCurrentUser(User user) {
         currentUser = user;
     }
@@ -45,10 +47,6 @@ public class Session {
         Session.currentUserGoalHistory = currentUserGoalHistory;
     }
 
-//    public static void setEmail(String userEmail) {
-//        email = userEmail;
-//    }
-
     public static void setEmail(String e) {
         email = e;
         prefs.put("email", e); // persist email
@@ -66,6 +64,7 @@ public class Session {
         return accessToken;
     }
 
+    //clear user's current session
     public static void clear() {
         email = null;
         currentUser = null;
@@ -73,13 +72,5 @@ public class Session {
         currentUserGoals = null;
         currentUserGoalHistory = null;
         prefs.remove("email");
-    }
-
-    public static boolean isActive() {
-        return email != null && currentUser != null && currentUserAccount != null;
-    }
-
-    public static String getSavedEmail() {
-        return prefs.get("email", null); // null if not saved
     }
 }

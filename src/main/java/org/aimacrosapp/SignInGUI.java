@@ -14,7 +14,7 @@ public class SignInGUI extends JFrame {
     private JPasswordField txtPassword = new JPasswordField(15);
 
     public SignInGUI() {
-        // === ICON PANEL (logoPanel) ===
+        // icon panel/nav
         Image scaledImage = new ImageIcon(getClass().getResource("/app_icon.png"))
                 .getImage()
                 .getScaledInstance(200, 200, Image.SCALE_SMOOTH);
@@ -23,7 +23,7 @@ public class SignInGUI extends JFrame {
         logoPanel.setBackground(Color.LIGHT_GRAY);
         logoPanel.add(lblIcon);
 
-        // === TOP PANEL (back button) ===
+        // back button
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
@@ -37,7 +37,7 @@ public class SignInGUI extends JFrame {
         topPanel.setPreferredSize(new Dimension(60, 60));
         topPanel.add(btnBack);
 
-        // === MAIN CONTENT PANEL (panel1) ===
+        // main content
         lblWelcome = new JLabel("Welcome! Please sign in to start using the app, or sign up if you're new!");
         lblEmail = new JLabel("Username (Email):");
         lblPassword = new JLabel("Password:");
@@ -99,15 +99,15 @@ public class SignInGUI extends JFrame {
         gbc.gridy = 4;
         panel1.add(btnForgot, gbc);
 
-        // === LAYOUT WRAPPING ===
-// 1. Combine logoPanel and panel1 into a vertically stacked box
+        // layout wrapping
+        // Combine logoPanel and panel1 into a vertically stacked box
         JPanel stackedPanel = new JPanel();
         stackedPanel.setLayout(new BoxLayout(stackedPanel, BoxLayout.Y_AXIS));
         stackedPanel.setBackground(Color.LIGHT_GRAY);
         stackedPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         stackedPanel.setAlignmentY(Component.CENTER_ALIGNMENT);
 
-// Align and space the contents
+        // Align and space the contents
         logoPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel1.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -115,21 +115,19 @@ public class SignInGUI extends JFrame {
         stackedPanel.add(Box.createRigidArea(new Dimension(0, 20))); // vertical spacing
         stackedPanel.add(panel1);
 
-// 2. Wrap stackedPanel in a full screen GridBagLayout to center it
+        // Wrap stackedPanel in a full screen GridBagLayout to center it
         JPanel fullWrapper = new JPanel(new GridBagLayout());
         fullWrapper.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints fullGbc = new GridBagConstraints();
         fullGbc.gridx = 0;
         fullGbc.gridy = 0;
-// Anchor it higher vertically
+        // Anchor it higher vertically
         fullGbc.anchor = GridBagConstraints.NORTH;
-// Add padding from the top (smaller padding = higher on screen)
+        // Add padding from the top (smaller padding = higher on screen)
         fullGbc.insets = new Insets(0, 0, 0, 0);
         fullWrapper.add(stackedPanel, fullGbc);
 
-
-
-        // === SETUP FRAME ===
+        // setup frame
         setTitle("Sign In");
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -138,10 +136,6 @@ public class SignInGUI extends JFrame {
         add(topPanel, BorderLayout.NORTH);
         add(fullWrapper, BorderLayout.CENTER);
         setVisible(true);
-
-        // === EVENT HANDLERS ===
-        txtEmail.setText("chan@example.com");
-        txtPassword.setText("Chan123!");
 
         //back button click event
         btnBack.addActionListener(new ActionListener() {
@@ -157,7 +151,7 @@ public class SignInGUI extends JFrame {
             }
         });
 
-//create account click event
+        //create account click event
         btnCreate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -171,7 +165,7 @@ public class SignInGUI extends JFrame {
             }
         });
 
-//forgot password click event
+        //forgot password click event
         btnForgot.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -185,8 +179,7 @@ public class SignInGUI extends JFrame {
             }
         });
 
-
-
+        //login click event
         btnLogin.addActionListener(e -> {
             String email = txtEmail.getText().trim();
             String password = new String(txtPassword.getPassword());
@@ -195,9 +188,7 @@ public class SignInGUI extends JFrame {
                 JOptionPane.showMessageDialog(panel1, "Email is in an invalid format.", "Invalid Email", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
             AccountLogic accountLogic = new AccountLogic();
-
             try {
                 boolean isAuthenticated = accountLogic.signIn(email, password);
                 if (isAuthenticated) {

@@ -10,6 +10,7 @@ public class UserGoalHistory {
     private int todays_protein;
     private int todays_fats;
 
+    //empty constructor
     public UserGoalHistory(){
 
     }

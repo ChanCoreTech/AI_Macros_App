@@ -84,11 +84,9 @@ public class UserAccount {
         this.email_second = email_second;
     }
 
-    //getter and setters for user id
     public String getUser_id() {
         return user_id;
     }
-
     public void setUser_id(String user_id) {
         this.user_id = user_id;
     }

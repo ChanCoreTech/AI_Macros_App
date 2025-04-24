@@ -34,7 +34,7 @@ public class GoalsGUI extends JFrame {
         LocalDate today = LocalDate.now();
         String todayStr = today.format(DateTimeFormatter.ISO_LOCAL_DATE);
 
-        // === LABELS ===
+        //initialize
         lblDirections = new JLabel("Here, you can create/edit your general goals or enter today's daily macros to track your progress!");
         lblWorkoutsPer = new JLabel("Workouts per week:");
         lblCalories = new JLabel("Calories per day:");
@@ -123,6 +123,7 @@ public class GoalsGUI extends JFrame {
         btnBack.setToolTipText("Back");
         btnLogout.setToolTipText("Logout");
 
+        //back button click event
         btnBack.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -134,6 +135,7 @@ public class GoalsGUI extends JFrame {
             }
         });
 
+        //logout click event
         btnLogout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -160,6 +162,7 @@ public class GoalsGUI extends JFrame {
             }
         });
 
+        //submit button click event
         btnSubmit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -173,12 +176,13 @@ public class GoalsGUI extends JFrame {
 
                 StringBuilder errors = new StringBuilder();
 
+                //validation
                 if (!calories.isEmpty()) {
                     try {
                         int cal = Integer.parseInt(calories);
                         if (cal < 0 || cal > 10000) errors.append("- Calories must be between 0 and 10000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Calories must be a number\n");
+                        errors.append("- Calories must be a number (non-decimal)\n");
                     }
                 }
 
@@ -187,25 +191,25 @@ public class GoalsGUI extends JFrame {
                         int carb = Integer.parseInt(carbs);
                         if (carb < 0 || carb > 20000) errors.append("- Carbs must be between 0 and 20000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Carbs must be a number\n");
+                        errors.append("- Carbs must be a number (non-decimal)\n");
                     }
                 }
 
                 if (!protein.isEmpty()) {
                     try {
                         int prot = Integer.parseInt(protein);
-                        if (prot < 0 || prot > 1000) errors.append("- Protein must be between 0 and 1000\n");
+                        if (prot < 0 || prot > 1000) errors.append("- Protein must be between 0 and 1000 (non-decimal)\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Protein must be a number\n");
+                        errors.append("- Protein must be a number (non-decimal)\n");
                     }
                 }
 
                 if (!fats.isEmpty()) {
                     try {
                         int fat = Integer.parseInt(fats);
-                        if (fat < 0 || fat > 20000) errors.append("- Fats must be between 0 and 20000\n");
+                        if (fat < 0 || fat > 20000) errors.append("- Fats must be between 0 and 20000 (non-decimal)\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Fats must be a number\n");
+                        errors.append("- Fats must be a number (non-decimal)\n");
                     }
                 }
 
@@ -224,12 +228,13 @@ public class GoalsGUI extends JFrame {
             }
         });
 
-
+        //update table click event
         btnUpdate.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 GoalsLogic goalsLogic = new GoalsLogic();
 
+                //grab values
                 String today_date = txtTodayDate.getText().trim();
                 String today_workout = (String) comboTodayWorkout.getSelectedItem();
                 String todayCalories = txtTodayCalories.getText().trim();
@@ -239,6 +244,7 @@ public class GoalsGUI extends JFrame {
 
                 StringBuilder errors = new StringBuilder();
 
+                //validation
                 if (!today_date.matches("^(\\d{4}[-/]\\d{2}[-/]\\d{2})|(\\d{2}[-/]\\d{2}[-/]\\d{4})$")) {
                     errors.append("- Invalid date format (use MM/DD/YYYY, YYYY/MM/DD, MM-DD-YYYY, or YYYY-MM-DD)\n");
                 }
@@ -248,7 +254,7 @@ public class GoalsGUI extends JFrame {
                         int cal = Integer.parseInt(todayCalories);
                         if (cal < 0 || cal > 10000) errors.append("- Calories must be between 0 and 10000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Calories must be a number\n");
+                        errors.append("- Calories must be a number (non-decimal)\n");
                     }
                 }
 
@@ -257,7 +263,7 @@ public class GoalsGUI extends JFrame {
                         int carb = Integer.parseInt(todayCarbs);
                         if (carb < 0 || carb > 20000) errors.append("- Carbs must be between 0 and 20000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Carbs must be a number\n");
+                        errors.append("- Carbs must be a number (non-decimal)\n");
                     }
                 }
 
@@ -266,7 +272,7 @@ public class GoalsGUI extends JFrame {
                         int prot = Integer.parseInt(todayProtein);
                         if (prot < 0 || prot > 1000) errors.append("- Protein must be between 0 and 1000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Protein must be a number\n");
+                        errors.append("- Protein must be a number (non-decimal)\n");
                     }
                 }
 
@@ -275,7 +281,7 @@ public class GoalsGUI extends JFrame {
                         int fat = Integer.parseInt(todayFats);
                         if (fat < 0 || fat > 20000) errors.append("- Fats must be between 0 and 20000\n");
                     } catch (NumberFormatException ex) {
-                        errors.append("- Fats must be a number\n");
+                        errors.append("- Fats must be a number (non-decimal)\n");
                     }
                 }
 
@@ -294,7 +300,7 @@ public class GoalsGUI extends JFrame {
             }
         });
 
-
+        //fonts
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);
@@ -338,7 +344,7 @@ public class GoalsGUI extends JFrame {
         topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
         topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
-        // MAIN GOALS PANEL
+        // main goals panel
         panel1 = new JPanel(new GridBagLayout());
         panel1.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc1 = new GridBagConstraints();
@@ -392,7 +398,7 @@ public class GoalsGUI extends JFrame {
         gbc1.anchor = GridBagConstraints.CENTER;
         panel1.add(btnSubmit, gbc1);
 
-        // TODAY'S STATS PANEL
+        // todays stats panel
         JPanel panel2 = new JPanel(new GridBagLayout());
         panel2.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc2 = new GridBagConstraints();
@@ -453,12 +459,12 @@ public class GoalsGUI extends JFrame {
         gbc1.anchor = GridBagConstraints.CENTER;
         panel2.add(btnUpdate, gbc1);
 
-        // CONTENT PANEL
+        // content panel
         JPanel contentPanel = new JPanel(new GridLayout(1, 2));
         contentPanel.add(panel1);
         contentPanel.add(panel2);
 
-        // FRAME SETTINGS
+        // frame settings
         setTitle("Goals");
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

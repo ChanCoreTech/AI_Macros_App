@@ -15,7 +15,6 @@ public class User {
     private String experience_level;
     private String activity_level;
     private String primary_goal;
-    //feel free to add more if necessary
 
     //empty
     public User() {
@@ -32,7 +31,6 @@ public class User {
         this.height_inches = height_inches;
         this.weight_lbs = weight_lbs;
     }
-
 
     //optional user constructor
     public User(String first_name, String last_name, String birth_date, String gender, int height_feet, int height_inches, int weight_lbs,

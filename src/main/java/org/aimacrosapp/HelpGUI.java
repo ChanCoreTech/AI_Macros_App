@@ -10,7 +10,7 @@ public class HelpGUI extends JFrame {
     private JButton btnBack, btnLogout;
 
     public HelpGUI() {
-        // === BACK BUTTON ===
+        // back button
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
@@ -28,7 +28,7 @@ public class HelpGUI extends JFrame {
         btnBack.setToolTipText("Back");
         btnLogout.setToolTipText("Logout");
 
-        // === TOP PANEL ===
+        // top panel
         JPanel topPanel = new JPanel(null);
         // Top panel for back button (left) and logout button (right)
         topPanel = new JPanel(new BorderLayout());
@@ -41,11 +41,11 @@ public class HelpGUI extends JFrame {
         topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
         topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
-        // === FONTS ===
+        // fonts
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
 
-        // === LEFT CONTENT PANEL ===
+        // left content
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setBackground(Color.LIGHT_GRAY);
         JLabel headerLbl1 = new JLabel("What's the App's Purpose?");
@@ -53,6 +53,7 @@ public class HelpGUI extends JFrame {
         headerLbl1.setHorizontalAlignment(SwingConstants.CENTER);
         headerLbl1.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
 
+        //text area for app purpose
         JTextArea textArea1 = new JTextArea("Wondering where to start? The Macros Tracker with AI Assistant is an application created with the purpose of helping YOU " +
                 "improve your overall fitness and customize your goals! Just create an account if you haven't, sign in, and you will be brought to the main dashboard. " +
                 "You will be able to do the following:\n\n" +
@@ -76,15 +77,15 @@ public class HelpGUI extends JFrame {
         textArea1.setFont(mainFont);
         textArea1.setPreferredSize(new Dimension(500, 200));
 
+        //make pane1 scrollable
         JScrollPane scrollPane1 = new JScrollPane(textArea1);
         scrollPane1.setOpaque(true);
-        //scrollPane.setPreferredSize(new Dimension(500, 100));
         scrollPane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         leftPanel.add(headerLbl1, BorderLayout.NORTH);
         leftPanel.add(scrollPane1, BorderLayout.CENTER);
-        // === RIGHT CONTENT PANEL ===
+        // right panel for directions
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBackground(Color.LIGHT_GRAY);
         JLabel headerLbl2 = new JLabel("Page-By-Page Guide:");
@@ -92,6 +93,7 @@ public class HelpGUI extends JFrame {
         headerLbl2.setHorizontalAlignment(SwingConstants.CENTER);
         headerLbl2.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
 
+        //second text area gives page-by-page guide
         JTextArea textArea2 = new JTextArea("Sign-In Page (Landing Page):\n\n" +
                 "• Enter your username and password and click the 'Login' button to login and be sent to the main dashboard\n" +
                 "• Click the 'Sign Up' if you do not yet have an account\n" +
@@ -99,7 +101,8 @@ public class HelpGUI extends JFrame {
                 "Dashboard Page (Main Page):\n\n" +
                 "• Hover over the top icons to see the page names. Click it, and you will be sent to that page. (Account/Settings, Goals, Goal History, and Help)\n" +
                 "• Below the icons, view the on-screen stats on the left and right for your set daily goals (left) and today's progress (right)\n" +
-                "• Below the stats, click on the icon of a man to access Joe, your AI fitness coach who will aid you\n\n" +
+                "• Below the stats, click on the icon of a man to access Joe, your AI fitness coach who will aid you\n" +
+                "• There is a copy info button at the bottom of the dashboard that can be used to copy the profile information that will be helpful for your chatbot to aid you!\n\n" +
                 "AI Coach Chatbot (External Link):\n\n" +
                 "• After clicking on the image of 'Joe', you will be sent to an external web page with your AI chatbot\n" +
                 "• You can start by providing Joe with your age, height, weight, body type, gender, fitness goals, and any other relevant information\n" +
@@ -116,6 +119,7 @@ public class HelpGUI extends JFrame {
                 "Goal History Page (3rd icon from the left on the dashboard:)\n\n" +
                 "• After clicking on the list icon, you will be brought to the page where you can view all of your saved goal-related data from the past\n" +
                 "• You can double click any field to edit it and click the 'Submit Changes' button to save your changes\n" +
+                "• Click the top column names in order to sort by ascending or descending values\n" +
                 "• You can select a row by clicking on it or multiple rows with Ctrl+Click and click the 'Delete Button' to delete those selected rows\n\n" +
                 "Help Page (4th icon from the left on the dashboard):\n\n" +
                 "• After clicking the question mark icon, you will be brought to this page, which details the app's purpose of usage and how to use the app in detail\n\n" +
@@ -137,23 +141,21 @@ public class HelpGUI extends JFrame {
         textArea2.setFocusable(false);
         textArea2.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
         textArea2.setFont(mainFont);
-        //textArea2.setPreferredSize(new Dimension(500, 100));
 
         JScrollPane scrollPane2 = new JScrollPane(textArea2);
         scrollPane2.setOpaque(true);
-        //scrollPane.setPreferredSize(new Dimension(500, 100));
         scrollPane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         rightPanel.add(headerLbl2, BorderLayout.NORTH);
         rightPanel.add(scrollPane2, BorderLayout.CENTER);
 
-        // === COMBINE LEFT & RIGHT INTO CONTENT PANEL ===
+        // combine left and right panel
         JPanel contentPanel = new JPanel(new GridLayout(1, 2));
         contentPanel.add(leftPanel);
         contentPanel.add(rightPanel);
 
-        // === FRAME SETTINGS ===
+        // frame settings
         setTitle("Help");
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -181,6 +183,7 @@ public class HelpGUI extends JFrame {
             }
         });
 
+        //logout click event
         btnLogout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

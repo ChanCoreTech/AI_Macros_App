@@ -22,7 +22,7 @@ public class GoalHistoryGUI extends JFrame {
         //initialize delete
         btnDelete = new JButton("Delete");
 
-        // === BACK BUTTON ===
+        // back button
         ImageIcon backIcon = new ImageIcon(getClass().getResource("/back_arrow.png"));
         btnBack = new JButton(backIcon);
         btnBack.setBorderPainted(false);
@@ -50,7 +50,7 @@ public class GoalHistoryGUI extends JFrame {
         btnLogout.setBorderPainted(false);
         btnLogout.setContentAreaFilled(false);
 
-        // === TOP PANEL ===
+        // top panel
         JPanel topPanel = new JPanel(null);
         // Top panel for back button (left) and logout button (right)
         topPanel = new JPanel(new BorderLayout());
@@ -66,13 +66,13 @@ public class GoalHistoryGUI extends JFrame {
         topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
         topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
 
-        // === FONTS ===
+        // fonts
         Font headerFont = new Font("Helvetica", Font.BOLD, 22);
         Font mainFont   = new Font("Verdana",  Font.PLAIN, 15);
         Font boldFont   = new Font("Verdana",  Font.BOLD, 15);
         btnDelete.setFont(boldFont);
 
-        // === TABLE SETUP ===
+        // table setup
         String[] columnNames = {"Date", "Workout", "Calories", "Carbs", "Protein", "Fats"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
             @Override public boolean isCellEditable(int r, int c) { return true; }
@@ -84,12 +84,9 @@ public class GoalHistoryGUI extends JFrame {
         goalTable.getTableHeader().setFont(boldFont);
         ((DefaultTableCellRenderer)goalTable.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(SwingConstants.CENTER);
 
-        // === ENABLE SORTING ===
+        // enable sorting
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         goalTable.setRowSorter(sorter);
-
-        // Optional: Sort Workout column (index 1) as boolean values
-        //sorter.setComparator(1, Comparator.comparing(Boolean::valueOf));
 
         // Sort by Date (index 0) descending
         sorter.toggleSortOrder(0);
@@ -98,7 +95,7 @@ public class GoalHistoryGUI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(goalTable);
         scrollPane.setPreferredSize(new Dimension(850, 400));
 
-        // === LOAD DATA FROM SUPABASE ===
+        // load supabase data
         String email = Session.getEmail();
         GoalsLogic logic = new GoalsLogic();
         UserGoalData data = logic.getUserGoalsAndHistoryByEmail(email);
@@ -116,6 +113,7 @@ public class GoalHistoryGUI extends JFrame {
             }
         }
 
+        //logout click event
         btnLogout.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -142,7 +140,7 @@ public class GoalHistoryGUI extends JFrame {
             }
         });
 
-        // === SUBMIT BUTTON ===
+        // submit button
         JButton btnSubmitUpdates = new JButton("Submit Changes");
         btnSubmitUpdates.setFont(boldFont);
         btnSubmitUpdates.setPreferredSize(new Dimension(180, 30));
@@ -175,58 +173,58 @@ public class GoalHistoryGUI extends JFrame {
                 }
 
                 // Validate Calories: optional or 0–10000
-                // === CALORIES ===
+                // cals
                 if (!calories.isEmpty()) {
                     try {
                         int calVal = Integer.parseInt(calories);
                         if (calVal < 0 || calVal > 10000) {
-                            errors.append("- Row ").append(i + 1).append(": Calories must be between 0 and 10000.\n");
+                            errors.append("- Row ").append(i + 1).append(": Calories must be between 0 and 10000. (non-decimal)\n");
                             hasErrors = true;
                         }
                     } catch (NumberFormatException ex) {
-                        errors.append("- Row ").append(i + 1).append(": Calories must be a valid number (0–10000).\n");
+                        errors.append("- Row ").append(i + 1).append(": Calories must be a valid number (0–10000). (non-decimal)\n");
                         hasErrors = true;
                     }
                 }
 
-                // === CARBS ===
+                // carbs
                 if (!carbs.isEmpty()) {
                     try {
                         int carbVal = Integer.parseInt(carbs);
                         if (carbVal < 0 || carbVal > 20000) {
-                            errors.append("- Row ").append(i + 1).append(": Carbs must be between 0 and 20000.\n");
+                            errors.append("- Row ").append(i + 1).append(": Carbs must be between 0 and 20000. (non-decimal)\n");
                             hasErrors = true;
                         }
                     } catch (NumberFormatException ex) {
-                        errors.append("- Row ").append(i + 1).append(": Carbs must be a valid number (0–20000).\n");
+                        errors.append("- Row ").append(i + 1).append(": Carbs must be a valid number (0–20000). (non-decimal)\n");
                         hasErrors = true;
                     }
                 }
 
-                // === PROTEIN ===
+                // protein
                 if (!protein.isEmpty()) {
                     try {
                         int proteinVal = Integer.parseInt(protein);
                         if (proteinVal < 0 || proteinVal > 1000) {
-                            errors.append("- Row ").append(i + 1).append(": Protein must be between 0 and 1000.\n");
+                            errors.append("- Row ").append(i + 1).append(": Protein must be between 0 and 1000. (non-decimal)\n");
                             hasErrors = true;
                         }
                     } catch (NumberFormatException ex) {
-                        errors.append("- Row ").append(i + 1).append(": Protein must be a valid number (0–1000).\n");
+                        errors.append("- Row ").append(i + 1).append(": Protein must be a valid number (0–1000). (non-decimal)\n");
                         hasErrors = true;
                     }
                 }
 
-                // === FATS ===
+                // fats
                 if (!fats.isEmpty()) {
                     try {
                         int fatsVal = Integer.parseInt(fats);
                         if (fatsVal < 0 || fatsVal > 20000) {
-                            errors.append("- Row ").append(i + 1).append(": Fats must be between 0 and 20000.\n");
+                            errors.append("- Row ").append(i + 1).append(": Fats must be between 0 and 20000. (non-decimal)\n");
                             hasErrors = true;
                         }
                     } catch (NumberFormatException ex) {
-                        errors.append("- Row ").append(i + 1).append(": Fats must be a valid number (0–20000).\n");
+                        errors.append("- Row ").append(i + 1).append(": Fats must be a valid number (0–20000). (non-decimal)\n");
                         hasErrors = true;
                     }
                 }
@@ -239,7 +237,6 @@ public class GoalHistoryGUI extends JFrame {
             }
 
             // If valid, submit all rows
-            //String email = Session.getEmail();
             for (int i = 0; i < model.getRowCount(); i++) {
                 try {
                     logic.upsertGoalHistory(
@@ -259,6 +256,7 @@ public class GoalHistoryGUI extends JFrame {
             JOptionPane.showMessageDialog(this, "Updates submitted successfully!");
         });
 
+        //delete row(s) click event
         btnDelete.addActionListener(e -> {
             int[] selectedRows = goalTable.getSelectedRows();
             if (selectedRows.length > 0) {
@@ -293,9 +291,7 @@ public class GoalHistoryGUI extends JFrame {
             }
         });
 
-
-
-        // === MAIN PANEL ===
+        // panel
         panel1 = new JPanel(new GridBagLayout());
         panel1.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -312,20 +308,19 @@ public class GoalHistoryGUI extends JFrame {
         gbc.gridy = 1;
         panel1.add(scrollPane, gbc);
 
-// Create a horizontal button panel to group Submit and Delete side by side
+        // Create a horizontal button panel to group Submit and Delete side by side
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // 20px gap between buttons
         buttonPanel.setBackground(Color.LIGHT_GRAY);
         buttonPanel.add(btnSubmitUpdates);
         buttonPanel.add(btnDelete);
 
-// Add the button panel instead of individual buttons
+        // Add the button panel instead of individual buttons
         gbc.gridy = 2;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         panel1.add(buttonPanel, gbc);
 
-
-        // === FRAME SETTINGS ===
+        // frame settings
         setTitle("Goal History");
         setIconImage(new ImageIcon(getClass().getResource("/app_icon.png")).getImage());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

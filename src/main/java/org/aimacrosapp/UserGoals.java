@@ -10,6 +10,7 @@ public class UserGoals {
     private int daily_protein;
     private int daily_fats;
 
+    //empty constructor
     UserGoals(){
 
     }

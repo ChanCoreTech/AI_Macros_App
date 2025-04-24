@@ -71,7 +71,7 @@ public class ForgotPasswordGUI extends JFrame {
                 String confirmPass = new String(txtConfirmPass.getPassword());
 
                 if (!isVerifiedStageComplete) {
-                    // Step 1: Verify identity
+                    // Verify identity
                     boolean isVerified = accountLogic.confirmAccount(email, nickname);
                     if (isVerified) {
                         isVerifiedStageComplete = true;
@@ -92,7 +92,7 @@ public class ForgotPasswordGUI extends JFrame {
                     }
 
                 } else {
-                    // Step 2: Validate passwords
+                    // Validate passwords
                     StringBuilder errors = new StringBuilder();
 
                     if (!password.equals(confirmPass)) {
@@ -121,7 +121,7 @@ public class ForgotPasswordGUI extends JFrame {
                         return;
                     }
 
-                    // Step 3: Attempt to update password
+                    // Attempt to update password
                     boolean updated = accountLogic.updatePassword(email, password, confirmPass);
                     if (updated) {
                         JOptionPane.showMessageDialog(panel1,
@@ -142,9 +142,7 @@ public class ForgotPasswordGUI extends JFrame {
             }
         });
 
-
         //resize all elements
-        //Font headerFont = new Font("Helvetica", Font.BOLD, 20);
         Font headerFont = new Font("Helvetica", Font.BOLD, 18);
         Font mainFont = new Font("Verdana", Font.PLAIN, 15);
         Font boldFont = new Font("Verdana", Font.BOLD, 15);

@@ -4,30 +4,22 @@ import java.io.IOException;
 import java.util.UUID;
 
 public class Main {
+
     public static void main(String[] args) throws Exception {
 
-        //• ADD SESSIONS
-        //• TOUCH UP CHATBOT
-        // • RE-WORK FORGOT PASSWORD
-
-        //• DO WORD AND POWERPOINT
-
-        // • ADD HOVER TEXT AND TOUCH UP GUI
-        // • DON'T EXPOSE ENV
-        // • CHANGE COMMENTS
-        // • IMAGE RESOLUTION
-
-        // • TEST .JAR
-
         //try {
+
+        //start up SignInGUI
+        SwingUtilities.invokeLater(() -> new SignInGUI());
+
+        //Below: code to test methods
+
             //object for AccountLogic class
             //AccountLogic accountLogic = new AccountLogic();
 
             //object for SignInGUI class
             //SignInGUI gui = new SignInGUI();
 
-            //start up SignInGUI
-            SwingUtilities.invokeLater(() -> new SignInGUI());
 
             //SEND TO BOT
             //botLogic.linkToBot();

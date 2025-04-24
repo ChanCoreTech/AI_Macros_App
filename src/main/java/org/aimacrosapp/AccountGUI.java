@@ -33,7 +33,6 @@ import java.io.IOException;
         private JPanel topPanel;
 
         public AccountGUI(){
-
             //initialize elements
             lblDirections = new JLabel("Here is your profile information. Feel free to edit whenever you want!");
             lblReq = new JLabel("* Required Fields");
@@ -57,6 +56,7 @@ import java.io.IOException;
             btnResetPassword = new JButton("Reset Password");
             btnDeleteAccount = new JButton("Delete Account");
 
+            //preview text for password
             ToolTipManager.sharedInstance().setInitialDelay(100);
             txtPassword.setToolTipText("Passwords are hidden for security purposes. If you forgot your password, click 'Reset Password' below.");
 
@@ -144,6 +144,7 @@ import java.io.IOException;
                 }
             });
 
+            //logout click event
             btnLogout.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -194,7 +195,7 @@ import java.io.IOException;
 
                     StringBuilder errors = new StringBuilder();
 
-                    // === VALIDATION SECTION ===
+                    //validation
                     if (!first_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid first name\n");
                     if (!last_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid last name\n");
                     if (!birth_date.matches("^(\\d{4}/\\d{2}/\\d{2})|(\\d{2}/\\d{2}/\\d{4})|(\\d{2}-\\d{2}-\\d{4})|(\\d{4}-\\d{2}-\\d{2})$")) {
@@ -219,8 +220,7 @@ import java.io.IOException;
                         return;
                     }
 
-
-                    // Parse height and weight safely
+                    // Parse height and weight
                     int height_feet, height_inches, weight_lbs;
                     try {
                         height_feet = Integer.parseInt(height_feet_str);
@@ -247,7 +247,7 @@ import java.io.IOException;
                         );
 
                         if (userUpdated) {
-                            // Then attempt to update user_account table
+                            // Attempt to update user_account table
                             boolean userAccountUpdated = accountLogic.updateUserAccount(
                                     userAccount.getEmail(), userAccount.getPassword(),
                                     userAccount.getNickname(), userAccount.getPhone_number(), userAccount.getEmail_second()
@@ -275,15 +275,29 @@ import java.io.IOException;
             btnResetPassword.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    //open a new page to reset forget password
-                    new ForgotPasswordGUI();
-                    //close current page
-                    JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
-                    if (topFrame != null) {
-                        topFrame.dispose();
+                        int option = JOptionPane.showOptionDialog(
+                                panel1,
+                                "Are you sure you want to leave this page?\nYou will be signed out of your account.",
+                                "Confirm Navigation",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.WARNING_MESSAGE,
+                                null,
+                                new Object[]{"Yes", "No"},
+                                "No"
+                        );
+
+                        if (option == JOptionPane.YES_OPTION) {
+                            Session.clear(); // optional: clears current session
+                            new ForgotPasswordGUI(); // navigate to forgot password page
+
+                            // Close current frame
+                            JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(panel1);
+                            if (topFrame != null) {
+                                topFrame.dispose();
+                            }
+                        }
                     }
-                }
-            });
+                });
 
             btnDeleteAccount.addActionListener(new ActionListener() {
                 @Override
@@ -370,8 +384,6 @@ import java.io.IOException;
                 }
             });
 
-
-
             //resize all elements
             Font headerFont = new Font("Helvetica", Font.BOLD, 20);
             Font mainFont = new Font("Verdana", Font.PLAIN, 15);
@@ -425,7 +437,7 @@ import java.io.IOException;
             topPanel.setPreferredSize(new Dimension(60, 60));
 
             btnBack.setPreferredSize(new Dimension(50, 50));
-            btnLogout.setPreferredSize(new Dimension(100, 50)); // adjust size as needed
+            btnLogout.setPreferredSize(new Dimension(100, 50));
 
             topPanel.add(btnBack, BorderLayout.WEST);    // Puts back button on the far left
             topPanel.add(btnLogout, BorderLayout.EAST);  // Puts logout button on the far right
@@ -575,7 +587,6 @@ import java.io.IOException;
             gbc.anchor = GridBagConstraints.EAST;
             gbc.insets = new Insets(10, 200, 10, 10);
             panel1.add(btnDeleteAccount, gbc);
-
 
             //setup JFrame
             JFrame frame = new JFrame("Account");

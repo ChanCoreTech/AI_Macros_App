@@ -7,8 +7,6 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import org.mindrot.jbcrypt.BCrypt;
 
-//IF YOU HAVE TIME, ADD SECURITY QUESTIONS
-
 public class CreateAccountGUI extends JFrame {
     private JLabel lblDirections, lblReq, lblFirst, lblLast, lblBirth, lblGender, lblHeightFeet, lblHeightInches, lblWeight, lblBodyType, lblExperience, lblActivity,
             lblPrimary, lblEmail, lblPassword, lblConfirmPassword, lblNickname, lblPhoneNumber, lblEmailSecond;
@@ -103,6 +101,7 @@ public class CreateAccountGUI extends JFrame {
             btnCreateAccount.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    //values
                     String first_name = txtFirst.getText();
                     String last_name = txtLast.getText();
                     String birth_date = txtBirth.getText();
@@ -123,7 +122,7 @@ public class CreateAccountGUI extends JFrame {
 
                     StringBuilder errors = new StringBuilder();
 
-                    // === VALIDATION SECTION ===
+                    //validation
                     if (!first_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid first name\n");
                     if (!last_name.matches("^[a-zA-Z\\-]{1,35}$")) errors.append("- Invalid last name\n");
                     if (!birth_date.matches("^(\\d{4}/\\d{2}/\\d{2})|(\\d{2}/\\d{2}/\\d{4})|(\\d{2}-\\d{2}-\\d{4})|(\\d{4}-\\d{2}-\\d{2})$")) {
@@ -158,11 +157,11 @@ public class CreateAccountGUI extends JFrame {
                     AccountLogic accountLogic = new AccountLogic();
 
                     try {
-                        // Step 1: Sign up with Supabase Auth and get user_id + token
+                        // Sign up with Supabase Auth and get user_id + token
                         String userId = accountLogic.signUpUser(email, password);
 
                         if (userId != null) {
-                            // Step 2: Insert into users table using userId
+                            // Insert into users table using userId
                             String userTableId = accountLogic.createUser(
                                     userId,
                                     user.getFirst_name(),
@@ -178,7 +177,7 @@ public class CreateAccountGUI extends JFrame {
                                     user.getPrimary_goal()
                             );
 
-                            // Step 3: Insert into user_account table
+                            // Insert into user_account table
                             if (userTableId != null) {
                                 boolean userAccountCreated = accountLogic.createUserAccount(
                                         email,
@@ -189,6 +188,7 @@ public class CreateAccountGUI extends JFrame {
                                         userTableId
                                 );
 
+                                //account creation successful
                                 if (userAccountCreated) {
                                     JOptionPane.showMessageDialog(panel1, "Thanks! Your account has been created!");
                                     new SignInGUI();
@@ -255,7 +255,7 @@ public class CreateAccountGUI extends JFrame {
             comboActivity.setFont(comboFont);
             comboPrimary.setFont(comboFont);
 
-            // Top panel with null layout for the back button
+            // Top panel
             topPanel = new JPanel(null); // Null layout
             topPanel.setBackground(Color.WHITE);
             topPanel.setPreferredSize(new Dimension(60, 60)); // Fixed height
@@ -411,7 +411,7 @@ public class CreateAccountGUI extends JFrame {
 
             // Maximize the window to full-screen size, keeping window decorations
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            frame.setResizable(true);  // Allow window resizing if necessary
+            frame.setResizable(true);  // Allow window resizing
             frame.setLocationRelativeTo(null);  // Center the window
 
             // Set layout to BorderLayout and add components
