@@ -5,6 +5,7 @@ import java.util.prefs.Preferences;
 public class Session {
     private static String email;
     private static String accessToken;
+    private static String tempUserId;
 
     private static User currentUser;
     private static UserAccount currentUserAccount;
@@ -64,6 +65,14 @@ public class Session {
         return accessToken;
     }
 
+    public static void setTempUserId(String userId) {
+        tempUserId = userId;
+    }
+
+    public static String getTempUserId() {
+        return tempUserId;
+    }
+
     //clear user's current session
     public static void clear() {
         email = null;
@@ -71,6 +80,7 @@ public class Session {
         currentUserAccount = null;
         currentUserGoals = null;
         currentUserGoalHistory = null;
+        tempUserId = null;
         prefs.remove("email");
     }
 }

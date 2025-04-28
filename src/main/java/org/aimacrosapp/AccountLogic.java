@@ -29,6 +29,10 @@ public class AccountLogic {
 
     private static final String DB_URL = dotenv.get("MACROS_APP_SUPABASE_URL");
     private static final String DB_KEY = dotenv.get("MACROS_APP_ANON_KEY");
+    private static final String DB_SERVICE_ROLE_KEY = dotenv.get("MACROS_APP_SERVICE_ROLE_KEY");
+
+    private static final String SUPABASE_REST_URL = DB_URL + "/rest/v1";
+    private static final String SUPABASE_AUTH_URL = DB_URL + "/auth/v1";
 
     // Hash password
     public String hashPassword(String plainPassword) {
@@ -440,7 +444,8 @@ public class AccountLogic {
         }
     }
 
-    public boolean confirmAccount(String email, String nickname) {
+    //method to check if email and nickname security question match
+    public String confirmAccount(String email, String nickname) {
         try {
             // Encode query parameters
             String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
@@ -451,7 +456,7 @@ public class AccountLogic {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(requestUrl))
                     .header("Content-Type", "application/json")
-                    .header("apikey", DB_KEY) // Service role key is okay here if no access token
+                    .header("apikey", DB_KEY)  // Use service key if needed
                     .GET()
                     .build();
 
@@ -461,26 +466,61 @@ public class AccountLogic {
                 JSONArray jsonArray = new JSONArray(response.body());
                 if (jsonArray.length() == 0) {
                     System.out.println("User not found.");
-                    return false;
+                    return null;
                 }
 
                 JSONObject userObject = jsonArray.getJSONObject(0);
                 String storedNickname = userObject.getString("nickname");
+                String userId = userObject.getString("user_id");
 
-                return nickname.equals(storedNickname);
+                if (nickname.equals(storedNickname)) {
+                    System.out.println("Confirmed account for user ID: " + userId);
+                    return userId;
+                } else {
+                    System.out.println("Nickname mismatch.");
+                    return null;
+                }
             } else {
-                System.out.println("Failed to confirm user: " + response.body());
-                return false;
+                System.out.println("Failed to confirm account: " + response.body());
+                return null;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
+    //extract user ID for forgot password
+    public String extractUserIdByEmailPublic(String email) {
+        try {
+            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+            String endpoint = DB_URL + "/rest/v1/user_account?select=user_id&email=eq." + encodedEmail;
 
-    //method to reset password
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("apikey", DB_KEY) // Can also be service role key if anon doesn't have access
+                    .header("Content-Type", "application/json")
+                    .GET()
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JSONArray array = new JSONArray(response.body());
+                if (!array.isEmpty()) {
+                    return array.getJSONObject(0).getString("user_id");
+                }
+            } else {
+                System.out.println("Failed to fetch user ID (public): " + response.body());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public boolean updatePassword(String email, String newPassword, String confirmPassword) {
         if (email == null || email.isEmpty()) {
             System.out.println("Email is required.");
@@ -493,37 +533,96 @@ public class AccountLogic {
         }
 
         try {
-            // Hash the new password using BCrypt
-            String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+            // Get user_id from email
+            String userId = extractUserIdByEmailPublic(email);
+            if (userId == null) {
+                System.out.println("User ID not found for email.");
+                return false;
+            }
 
-            // Build JSON body
+            // Prepare Supabase credentials
+            String supabaseBaseUrl = dotenv.get("MACROS_APP_SUPABASE_URL"); // e.g., https://xyzcompany.supabase.co
+            String serviceKey = dotenv.get("MACROS_APP_SERVICE_ROLE_KEY");
+
+            if (supabaseBaseUrl == null || serviceKey == null || serviceKey.isEmpty()) {
+                System.err.println("❌ Supabase URL or SERVICE ROLE KEY is not set");
+                return false;
+            }
+
+            // Construct admin endpoint URL
+            String adminEndpoint = supabaseBaseUrl + "/auth/v1/admin/users/" + userId;
+
+            // Prepare JSON payload
             JSONObject json = new JSONObject();
-            json.put("password", hashedPassword);
+            json.put("password", newPassword);
 
-            // Create PATCH request WITHOUT Authorization header (use anon role)
+            System.out.println("ADMIN ENDPOINT: " + adminEndpoint);
+            System.out.println("USING SERVICE KEY (FIRST 8 CHARS): " + serviceKey.substring(0, 8));
+            System.out.println("JSON BODY: " + json);
+
+            // Build the HTTP PATCH request
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(DB_URL + "/rest/v1/user_account?email=eq." + URLEncoder.encode(email, StandardCharsets.UTF_8)))
+                    .uri(URI.create(adminEndpoint))
                     .header("Content-Type", "application/json")
-                    .header("apikey", DB_KEY) // Use service role key here if needed for admin-level access
+                    .header("apikey", serviceKey)
+                    .header("Authorization", "Bearer " + serviceKey)
                     .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
                     .build();
 
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 204 || response.statusCode() == 200) {
-                System.out.println("Password updated successfully for: " + email);
-                return true;
-            } else {
-                System.out.println("Failed to update password: " + response.body());
-                return false;
-            }
+            System.out.println("STATUS: " + response.statusCode());
+            System.out.println("BODY: " + response.body());
+
+            return response.statusCode() == 200;
 
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
+    public boolean sendPasswordResetEmail(String email) {
+        try {
+            // Send to the Supabase /auth/v1/recover endpoint
+            String supabaseUrl = dotenv.get("MACROS_APP_SUPABASE_URL"); // example: https://xzlclzbzegzzhkhdztby.supabase.co
+            String endpoint = supabaseUrl + "/auth/v1/recover";
+
+            JSONObject json = new JSONObject();
+            json.put("email", email);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header("Content-Type", "application/json")
+                    .header("apikey", dotenv.get("MACROS_APP_ANON_KEY")) // Use ANON KEY — NOT service role key
+                    .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
+                    .build();
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            System.out.println("STATUS: " + response.statusCode());
+            System.out.println("BODY: " + response.body());
+
+            return response.statusCode() == 200;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
