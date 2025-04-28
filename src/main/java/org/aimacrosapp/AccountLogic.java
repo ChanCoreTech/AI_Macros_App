@@ -490,102 +490,11 @@ public class AccountLogic {
         }
     }
 
-    //extract user ID for forgot password
-    public String extractUserIdByEmailPublic(String email) {
-        try {
-            String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
-            String endpoint = DB_URL + "/rest/v1/user_account?select=user_id&email=eq." + encodedEmail;
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .header("apikey", DB_KEY) // Can also be service role key if anon doesn't have access
-                    .header("Content-Type", "application/json")
-                    .GET()
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                JSONArray array = new JSONArray(response.body());
-                if (!array.isEmpty()) {
-                    return array.getJSONObject(0).getString("user_id");
-                }
-            } else {
-                System.out.println("Failed to fetch user ID (public): " + response.body());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public boolean updatePassword(String email, String newPassword, String confirmPassword) {
-        if (email == null || email.isEmpty()) {
-            System.out.println("Email is required.");
-            return false;
-        }
-
-        if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
-            System.out.println("Passwords do not match or are empty.");
-            return false;
-        }
-
-        try {
-            // Get user_id from email
-            String userId = extractUserIdByEmailPublic(email);
-            if (userId == null) {
-                System.out.println("User ID not found for email.");
-                return false;
-            }
-
-            // Prepare Supabase credentials
-            String supabaseBaseUrl = dotenv.get("MACROS_APP_SUPABASE_URL"); // e.g., https://xyzcompany.supabase.co
-            String serviceKey = dotenv.get("MACROS_APP_SERVICE_ROLE_KEY");
-
-            if (supabaseBaseUrl == null || serviceKey == null || serviceKey.isEmpty()) {
-                System.err.println("❌ Supabase URL or SERVICE ROLE KEY is not set");
-                return false;
-            }
-
-            // Construct admin endpoint URL
-            String adminEndpoint = supabaseBaseUrl + "/auth/v1/admin/users/" + userId;
-
-            // Prepare JSON payload
-            JSONObject json = new JSONObject();
-            json.put("password", newPassword);
-
-            System.out.println("ADMIN ENDPOINT: " + adminEndpoint);
-            System.out.println("USING SERVICE KEY (FIRST 8 CHARS): " + serviceKey.substring(0, 8));
-            System.out.println("JSON BODY: " + json);
-
-            // Build the HTTP PATCH request
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(adminEndpoint))
-                    .header("Content-Type", "application/json")
-                    .header("apikey", serviceKey)
-                    .header("Authorization", "Bearer " + serviceKey)
-                    .method("PATCH", HttpRequest.BodyPublishers.ofString(json.toString()))
-                    .build();
-
-            HttpClient client = HttpClient.newHttpClient();
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println("STATUS: " + response.statusCode());
-            System.out.println("BODY: " + response.body());
-
-            return response.statusCode() == 200;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    //method to trigger Supabase to send the password reset email
     public boolean sendPasswordResetEmail(String email) {
         try {
             // Send to the Supabase /auth/v1/recover endpoint
-            String supabaseUrl = dotenv.get("MACROS_APP_SUPABASE_URL"); // example: https://xzlclzbzegzzhkhdztby.supabase.co
+            String supabaseUrl = dotenv.get("MACROS_APP_SUPABASE_URL");
             String endpoint = supabaseUrl + "/auth/v1/recover";
 
             JSONObject json = new JSONObject();
@@ -594,7 +503,7 @@ public class AccountLogic {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
                     .header("Content-Type", "application/json")
-                    .header("apikey", dotenv.get("MACROS_APP_ANON_KEY")) // Use ANON KEY — NOT service role key
+                    .header("apikey", dotenv.get("MACROS_APP_ANON_KEY"))
                     .POST(HttpRequest.BodyPublishers.ofString(json.toString()))
                     .build();
 

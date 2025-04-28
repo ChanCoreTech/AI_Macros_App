@@ -20,10 +20,6 @@ public class Main {
             //object for SignInGUI class
             //SignInGUI gui = new SignInGUI();
 
-
-            //SEND TO BOT
-            //botLogic.linkToBot();
-
             //DELETE FIELD FROM USERS
             //AccountLogic.deleteUser(UUID.fromString("1102ca65-6133-44b9-86bc-bb6e7602c7db"));
 

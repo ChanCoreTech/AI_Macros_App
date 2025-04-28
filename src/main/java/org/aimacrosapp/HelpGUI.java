@@ -129,7 +129,7 @@ public class HelpGUI extends JFrame {
                 "Forgot Password Page (bottom right button on the Sign-In page):\n\n" +
                 "• After clicking the 'Forgot Password' button, you will be brought to the page where you can reset your password for an existing account\n" +
                 "• Firstly, enter your email address and nickname you set for the account as a security question. Then click the 'Submit' button to verify\n" +
-                "• Next, enter your new password and re-enter your new password. Click the 'Submit' button again to reset your password. Sign in once you are redirected\n\n" +
+                "• Next, head over to your email address and click the link. That will open the New Password page. Enter your password twice to confirm, and click the button to submit your new password to use to sign in!\n\n" +
                 "Back Button (every page):\n\n" +
                 "• The back button appears at the top left corner of every page. Click it to go back to the home page (the sign in page if you're signed out, and the dashboard if you're signed in)\n\n" +
                 "Logout Button (every page after login):\n\n" +
